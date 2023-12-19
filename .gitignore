@@ -1,0 +1,6 @@
+outputs
+src/models/GLIP
+src/models/robotic_transformer_pytorch/clip_laion2b_s34b_b79k
+src/models/robotic_transformer_pytorch/CLIP-ViT-H-14-laion2B-s32B-b79K
+src/models/robotic_transformer_pytorch/CLIP-ViT-L-14-laion2B-s32B-b82K
+*.log
