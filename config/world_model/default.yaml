@@ -1,0 +1,19 @@
+# _target_: models.TransformerConfig
+# tokens_per_block: 17
+# max_blocks: 20
+# attention: 'causal'
+# num_layers: 6 # 6 # 10
+# num_heads: 8 # 8 # 4
+# embed_dim: 512 # 512 # 256
+# embed_pdrop: 0.1
+# resid_pdrop: 0.1
+# attn_pdrop: 0.1
+
+_target_: models.RTJ
+action_nums: 7
+state_nums: 10
+depth: 6
+heads: 8
+dim_head: 64
+embed_dim: 512
+dropout: 0.1

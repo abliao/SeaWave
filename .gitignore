@@ -1,0 +1,6 @@
+outputs
+src/models/GLIP
+checkpoints/
+*.log
+*_images/
+*_videos/
