@@ -33,8 +33,8 @@ datasets:
     _target_: feeders.Feeder
     control: ${env.control}
     data_path: 
-      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_5
-
+#      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_6 # 逼近有两段轨迹
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_8
       # - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs
       # - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_2
       # - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_3
@@ -59,7 +59,8 @@ datasets:
       # - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_2
       # - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_3
       # - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs
-      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_5
+#      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_5
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_8
     instructions_path: /data2/liangxiwen/zkd/IL/instructions/training.pkl
     history_len: ${datasets.history_len}
     instructions_level: 
@@ -88,7 +89,7 @@ wandb:
   notes: null
 
 common:
-  epochs: 1000
+  epochs: 2000
   device: cuda:0
   do_checkpoint: True
   seed: 0
@@ -96,7 +97,7 @@ common:
   resume: False # set by resume.sh script only.
 
 initialization:
-  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-07/16-03-15/checkpoints/last.pt  #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-06/18-21-50/checkpoints/last.pt #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-03/22-15-51/checkpoints/last.pt
+  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-11/23-05-55/checkpoints/last.pt #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-09/13-24-11/checkpoints/last.pt
   load_tokenizer: False
   load_world_model: True 
   load_actor: True 

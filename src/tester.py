@@ -224,109 +224,6 @@ def grasp(sim,agent,log,robot_location,objList,device='cuda',history_len=1,handS
     print('target_now_loc',target_now_loc)
     return log
 
-def Tester_level0(agent,cfg,episode_dir):
-    levels = cfg.datasets.eval.levels
-    client=cfg.env.client
-    action_nums=cfg.env.num_actions
-    bins = cfg.env.bins
-    mode = cfg.env.mode
-    max_steps = cfg.env.max_steps
-    device = cfg.common.device
-    agent.load(**cfg.initialization,device=device)
-    agent.to(device)
-    agent.eval()
-                     
-    scene_num = 1
-    map_id = 2
-    server = SimServer(client,scene_num = scene_num, map_id = map_id)
-    sim=Sim(client,scene_id=0)
-    
-    with open('/data2/liangxiwen/RM-PRT/IL/RLexpert/0718_single_merge_data_new.pkl','rb') as f:
-        df=pickle.load(f)
-
-    success=0
-    rule_success=0
-    rule_num=0
-    total_num=0
-
-    
-    with open(cfg.datasets.test.instructions_path,'rb') as f:
-        instructions=pickle.load(f)
-
-    logs=[]
-    for index,data in tqdm(enumerate(random.choices(df,k=400))):
-        data = deepcopy(data)
-        sim.reset()
-        sim.bow_head()
-        time.sleep(1)
-        sim.grasp('release')
-        time.sleep(1)
-        sim.changeWrist(0,0,-40)
-        sim.removeObjects('all')
-        objs=sim.getObjsInfo()
-        scene=sim.removeObjects([0])
-        loc=data['obj_loc']
-        loc[2]-=9.425
-        desk_id = random.choice(sim.desks.ID.values)
-        sim.addDesk(desk_id,h=loc[2])
-        # obj_id = random.choice(sim.objs.ID.values)
-        # target_obj_id = obj_id
-        loc4gen=loc[:]
-        loc4gen[2]+=1
-        # objList = [[obj_id,*loc4gen,0,0,0]]
-        # scene=sim.addObjects([[obj_id,*loc4gen,0,0,0]])
-        n_objs=1 # random.choice([2,3,4,5])
-        # objList = sim.genObjs(n=n_objs,target_loc=loc4gen[:2],h=loc[2])
-        objList = sim.genObjs(n=n_objs,h=loc[2])
-        target_obj_id = objList[0][0]
-        XX,YY, ZZ = data['robot_location']
-        assert ZZ==0,'z!=0'
-        ZZ=90
-        sx,sy = sim.getObservation().location.X, sim.getObservation().location.Y
-        for frame in data['traj'][:1]:
-            x,y,z=frame['details'][-1]['location']
-            x = (x-XX)
-            y = (y-YY)
-            z+=5
-            x+=1
-            sim.moveHand(x=x,y=y,z=z,method='relatively')
-        
-        log={}
-        log['objs']=objList
-        log['deskInfo']={'desk_id':desk_id,'height':loc[2]}
-        log['initLoc']=(x,y,z)
-        log['detail']=''
-        log['track']=[]
-        log['targetObjID']=target_obj_id
-        log['targetObj']=sim.objs[sim.objs.ID==log['targetObjID']].Name.values[0]
-
-        instr = 'pick a ' + log['targetObj']
-        log['instruction']=instr
-        
-        robot_location = sim.getObservation().location.X, sim.getObservation().location.Y, 90
-        log=grasp(sim,agent,log,log['initLoc'],robot_location=robot_location,device=device)
-        
-        logs.append(log)
-
-        if log['info']=='success':
-            success+=1
-
-        total_num+=1
-        print(f'num: {total_num}, success rate:{success/total_num*100:.2f}%)')
-        print('Instruction: ',instr)
-        time.sleep(1)
-        if log['info'] in ['success','collision','time exceed']: 
-            print('targetObj:',log['targetObj'])
-            print(f"done at {len(log['track'])} steps")
-            print(log['detail'])
-            
-            # if index==0:
-            im=sim.getImage()
-            plt.imshow(im)
-            plt.savefig(episode_dir / f"{index:04d}_{log['info']}_{log['targetObj']}.png", format='png')
-            with open(episode_dir /'trajectory.pkl','wb') as f:
-                pickle.dump(logs,f)
-
 def Tester(agent,cfg,episode_dir):
     levels = cfg.datasets.eval.levels
     client=cfg.env.client
@@ -363,14 +260,14 @@ def Tester(agent,cfg,episode_dir):
         sim.EnableEndPointCtrl(True)
         sim.reset()
         # sim.changeWrist(0,0,-40)
-        sim.moveHand(-2.0311660766601562, -46.86720657399303, 116.66156768798828,method='relatively')
+        # sim.moveHand(-2.0311660766601562, -46.86720657399303, 116.66156768798828,method='relatively')
         if control=='joint':
             sim.EnableEndPointCtrl(False)
         else:
             sim.EnableEndPointCtrl(True)
         desk_id=1
         sim.addDesk(desk_id=desk_id)
-        can_list=[12] # [12,14,16,17,18]
+        can_list=[12,14,16,17,18]
         obj_id = random.choice(can_list)
         other_obj_ids = random.choices([x for x in sim.objs.ID.values if x!=obj_id],k=n_objs-1)
         ids = [obj_id]+other_obj_ids
