@@ -206,8 +206,8 @@ def grasp(sim,agent,log,robot_location,objList,device='cuda',history_len=1,handS
             # time.sleep(3)
             print(f'to grasp, grasp_state={sim.grasp_state[handSide]}')
             log['grasp_img'] = sim.getImage()
-        elif not if_grasp and sim.grasp_state[handSide]==1:
-            sim.release()
+        # elif not if_grasp and sim.grasp_state[handSide]==1:
+        #     sim.release()
         
         log['track'].append(last_action.copy())
         log['imgs'].append(sim.getImage())
@@ -256,6 +256,8 @@ def Tester(agent,cfg,episode_dir):
     n_objs=1
     
     handSide='Right'
+    with open('/data2/liangxiwen/zkd/SeaWave/locs.pkl','rb') as f:
+        objLists = pickle.load(f)
     for index in tqdm(range(100)):
         sim.EnableEndPointCtrl(True)
         sim.reset()
@@ -266,12 +268,19 @@ def Tester(agent,cfg,episode_dir):
         else:
             sim.EnableEndPointCtrl(True)
         desk_id=1
-        sim.addDesk(desk_id=desk_id)
+        sim.addDesk(desk_id=desk_id,h=98)
         can_list=[12,14,16,17,18]
         obj_id = random.choice(can_list)
         other_obj_ids = random.choices([x for x in sim.objs.ID.values if x!=obj_id],k=n_objs-1)
         ids = [obj_id]+other_obj_ids
-        objList=sim.genObjs(n=n_objs,ids=ids,handSide=handSide,h=sim.desk_height)
+
+        # 替换成训练数据
+        objList = objLists[index]
+        ids = [objList[0][0]]
+        target_loc = objList[0][1:3]
+        objList = sim.genObjs(n=n_objs, ids=ids, handSide=handSide, h=sim.desk_height, target_loc=target_loc)
+
+        # objList=sim.genObjs(n=n_objs,ids=ids,handSide=handSide,h=sim.desk_height)
         
         obj_id = objList[0][0]
         target_obj_id = obj_id
@@ -324,6 +333,7 @@ def Tester(agent,cfg,episode_dir):
                 plt.savefig(episode_dir / f"{index:04d}_grasp_{log['info']}_{log['targetObj']}.png", format='png')
             with open(episode_dir /'trajectory.pkl','wb') as f:
                 pickle.dump(logs,f)
+
             clip.write_videofile(str(episode_dir / f"{index:04d}_grasp_{log['info']}_{log['targetObj']}.mp4"), fps=6)
 
     # sim.setLightIntensity(0.5)

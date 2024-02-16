@@ -26,8 +26,8 @@ with open('Imitation_data/RLexpert/0718_single_merge_data_new.pkl', 'rb') as f:
 
 import os
 
-output_path = '/data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_8'
-data_info="手的初始位置在上面"
+output_path = '/data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_12'
+data_info="手的初始位置在上面，固定桌子高度,随机变换初始位置,随机生成物体位置（不使用达闼数据）,第一段轨迹往前移"
 meta_data_path = output_path + os.sep + 'meta_data.json'
 n_objs = 1
 can_list = [12, 14, 16, 17, 18]
@@ -101,32 +101,24 @@ for epoch in range(1):
         objs = sim.getObjsInfo()
         scene = sim.removeObjects([0])
         loc = data['obj_loc']
-        loc[2] -= 9.425
+        desk_height = 98 # 固定桌子高度
         desk_id = 1
-        sim.addDesk(desk_id, h=loc[2])
+        sim.addDesk(desk_id, h=desk_height)
         obj_id = random.choice(can_list)
         other_obj_ids = random.choices([x for x in sim.objs.ID.values if x != obj_id], k=n_objs - 1)
-        loc4gen = loc[:]
-        loc4gen[2] += 1
-        loc4gen[0] -= 5
-        # scene=sim.addObjects([[obj_id,*loc4gen,0,0,0]])
-
         ids = [obj_id] + other_obj_ids
-        objList = sim.genObjs(n=n_objs, ids=ids, target_loc=loc4gen[:2], h=loc[2])
+        objList = sim.genObjs(n=n_objs, ids=ids, h=sim.desk_height)
         target_origin_loc = sim.getObjsInfo()[1]['location']
         obj_id = objList[0][0]
         target_obj = sim.objs[sim.objs.ID == obj_id].Name.values[0]
         XX, YY, _ = data['robot_location']
         sx, sy = sim.getObservation().location.X, sim.getObservation().location.Y
 
-        # for frame in data['traj'][:1]:
-        #     x, y, z = frame['details'][-1]['location']
-        #     x = (x - XX) + np.random.uniform(-10,10)
-        #     y = (y - YY) + np.random.uniform(-10,10)
-        #     z += 5 + np.random.uniform(-2,5)
-        #     # x+=3
-        #     sim.moveHand(x=x, y=y, z=z, method='relatively', keep_rpy=(0, 0, 0))
-        #     sim.bow_head()
+        x = np.random.uniform(-10, 10)
+        y = np.random.uniform(-10,10)
+        z = np.random.uniform(-2,5)
+        sim.moveHand(x,y,z,method='diff', keep_rpy=(0, 0, 0))
+
         ox, oy, oz = sim.getSensorsData('Right')[0]
         offline_data['from_file'] = index
         offline_data['robot_location'] = (sx, sy, 90)
@@ -137,19 +129,6 @@ for epoch in range(1):
         offline_data['initLoc'] = (ox-sx, oy-sy, oz)
         offline_data['trajectory'] = []
         last_action = (ox-sx, oy-sy, oz)
-
-        # each_frame = {}
-        # time.sleep(0.05)
-        # mat = sim.getImage()
-        # mat = Resize(mat)
-        # time.sleep(0.05)
-        # each_frame['img'] = mat
-        # each_frame['state'] = sim.getState()
-        # sim.moveHand(x=0, y=0, z=-1, method='diff', gap=0.1, keep_rpy=(0, 0, 0))
-        # sim.bow_head()
-        # each_frame['action'] = (0, 0, -1, 0, 0, 0, 0)
-        # each_frame['after_state'] = sim.getState()
-        # offline_data['trajectory'].append(each_frame)
 
         tx, ty, tz = sim.findObj(id=1)['location']
         ox, oy, oz = sim.getSensorsData('Right')[0]

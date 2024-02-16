@@ -642,11 +642,12 @@ class ClipEmbedder(nn.Module):
     def forward(self,image,text):
         device=image.device
         self.model.to(device)
-        with torch.no_grad():
-            image = self.transform(image)
-            _, image_token = self.model.encode_image(image)
-            text = self.tokenizer(text).to(device)
-            text_token = self.model.encode_text(text) 
+
+        # with torch.no_grad():
+        image = self.transform(image)
+        _, image_token = self.model.encode_image(image)
+        text = self.tokenizer(text).to(device)
+        text_token = self.model.encode_text(text)
 
         image_token = self.img_mlp_head(image_token)
         text_token = self.text_mlp_head(text_token)
@@ -1142,6 +1143,7 @@ class DamWorld(nn.Module):
     ):
         super().__init__()
         self.embedder = ClipEmbedder(model_arch=clip_arch,model_path=clip_path,clip_visual_dim=clip_visual_dim,clip_text_dim=clip_text_dim,output_dims=embed_dim)
+        self.tokenizer = Tokenizer(efficientnet_config={'model_path':'efficientnet-b3','output_dims':embed_dim})
 
         self.transformer_depth = depth
         self.embed_dim = embed_dim
@@ -1170,10 +1172,9 @@ class DamWorld(nn.Module):
         )
         self.action_net=nn.Sequential(
             LayerNorm(embed_dim),
-            nn.Linear(embed_dim, num_actions),
+            nn.Linear(embed_dim, 128),
             nn.Tanh(),
-            nn.Linear(128, embed_dim),
-            nn.Tanh(),
+            nn.Linear(128, num_actions),
         )
         self.predict_action_net=nn.Sequential(
             nn.Linear(num_actions, 128),
@@ -1197,17 +1198,16 @@ class DamWorld(nn.Module):
         cond_drop_prob = default(cond_drop_prob, self.cond_drop_prob)
 
         frames, device = video.shape[1], video.device
-
         images, packed_shape = pack_one(video, '* c h w')
-
         image_token, text_token = self.embedder(images,texts)
         n = image_token.shape[1]
         image_token = unpack_one(image_token, packed_shape, '* n c')
-        
+
+        # image_token = self.tokenizer(video,texts)
         if return_embed:
             return image_token,text_token
+        # learned_tokens = image_token
         learned_tokens = rearrange(image_token, 'b f n c -> b (f n) c')
-
 
         # attention
 
@@ -1221,7 +1221,7 @@ class DamWorld(nn.Module):
         pooled = reduce(attended_tokens, 'b fn d -> b d', 'mean')
         
         action = self.action_net(pooled)
-    
+
         action_token = self.predict_action_net(action).unsqueeze(1)
         prompt_token = torch.cat([text_token,action_token], dim=1)
         pos_emb = posemb_sincos_1d(prompt_token.shape[1], prompt_token.shape[-1], dtype = prompt_token.dtype, device = prompt_token.device)
