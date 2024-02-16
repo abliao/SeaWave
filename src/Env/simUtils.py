@@ -526,7 +526,7 @@ class Sim(SimServer):
                     yield [*vector,0,0,0]
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
             obj_loc[0]-=4
-            obj_loc[1]+=3
+            obj_loc[1]+=4
             for i in range(100):
                 time_step+=1
                 sensor = self.getSensorsData(handSide='All',type='full')
