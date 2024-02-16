@@ -34,8 +34,10 @@ class SimServer():
     'Size': [4, 1, 4, 2, 5, 3, 4, 5, 6],
     'Shape': ['cylinder', 'cylinder, short', 'cylinder', 'cylinder', 'cylinder, tall and slender', 'cylinder', 'cylinder', 'cuboid', 'cylinder, high'],
     'Application': ['a milk product', 'a adhesive product', 'a coffee beverage', 'a container', 'a milk product', 'a refreshing beverage', 'a milk product', 'a refreshing beverage', 'a snack'],
-    'Other': ['a tapered mouth', None, None, None, None, 'a tapered mouth', 'green cap', None, 'yellow cap']
+    'Other': ['a tapered mouth', None, None, None, None, 'a tapered mouth', 'green cap', None, 'yellow cap'],
+    'reshape': [(1,1,1),(1,1,1),(0.9,0.9,0.9),(1,1,1),(1,1,1),(1,1,1),(0.9,0.9,0.9),(1,1,1),(1,1,1)],
     }
+    can_list = [12, 14, 16, 17, 18]
     objs = pd.DataFrame(data)
     objs = objs[objs['Name'] != 'Cup']
     objs = objs[objs['Name'] != 'Chips']
@@ -207,7 +209,10 @@ class Sim(SimServer):
             if len(obj)==4:
                 obj += [0]*3
             if len(obj)==7:
-                obj += [1]*3
+                if (self.objs.ID==obj[0]).any():
+                    obj += list(self.objs[self.objs.ID==obj[0]]['reshape'].values[0])
+                else:
+                    obj += [1]*3
             objs=[GrabSim_pb2.ObjectList.Object(type=obj[0], x=X + obj[1], y=Y + obj[2], z=obj[3], 
                                                 roll=obj[4], pitch=obj[5], yaw=obj[6],
                                                 sx=obj[7],sy=obj[8],sz=obj[9])]
@@ -461,6 +466,7 @@ class Sim(SimServer):
         return objs
     
     def findObj(self,name=None,id=None):
+        '''根据物体名字或者物体生成顺序查找物体'''
         assert (name is not None) or (id is not None)
 
         objInfo = self.getObjsInfo()
@@ -471,57 +477,68 @@ class Sim(SimServer):
                 if obj['name']==name:
                     return obj
     
-    def closeTargetObj(self,obj_id,handSide='Right',gap=0.3,return_action=False,keep_rpy=(10,0,0)):
-        assert  handSide in ['Right','Left']
-        method='absolute'
+    def closeTargetObj(self,obj_id,handSide='Right',gap=1.5,return_action=False,keep_rpy=(0,0,0)):
         if handSide=='Right':
-            x,y,z=self.findObj(id=obj_id)['location']
-            # x+=14+4
-            # y-=3.5+2.5
-            # z+=12
-            # if return_action:
-            #     for action in self.moveHandReturnAction(x,y,z,handSide,method,gap,keep_rpy=keep_rpy):
-            #         yield action
-            # else:
-            #     self.moveHand(x,y,z,handSide,method,gap,keep_rpy=keep_rpy)
-            # x,y,z=self.findObj(id=obj_id)['location']
-            x+=14+4
-            y-=3.5+2.5
-            z+=-2
-            if return_action:
-                for action in self.moveHandReturnAction(x,y,z,handSide,method,gap,keep_rpy=keep_rpy):
-                    yield action
-            else:
-                self.moveHand(x,y,z,handSide,method,gap,keep_rpy=keep_rpy)
-            x,y,z=self.findObj(id=obj_id)['location']
-            x+=10
-            y-=1.5
-            z+=-2
-            if return_action:
-                for action in self.moveHandReturnAction(x,y,z,handSide,method,gap,keep_rpy=keep_rpy):
-                    yield action
-            else:
-                self.moveHand(x,y,z,handSide,method,gap,keep_rpy=keep_rpy)
-        else:
-            x,y,z=self.findObj(id=obj_id)['location']
-            x+=14
-            y+=3.5+0.5
-            z+=12
-            if return_action:
-                for action in self.moveHandReturnAction(x,y,z,handSide,method,gap,keep_rpy=keep_rpy):
-                    yield action
-            else:
-                self.moveHand(x,y,z,handSide,method,gap,keep_rpy=keep_rpy)
-            x,y,z=self.findObj(id=obj_id)['location']
-            x+=14
-            y+=3.5+0.5
-            z+=-2
-            if return_action:
-                for action in self.moveHandReturnAction(x,y,z,handSide,method,gap,keep_rpy=keep_rpy):
-                    yield action
-            else:
-                self.moveHand(x,y,z,handSide,method,gap,keep_rpy=keep_rpy)
-
+            target_oringin_loc=self.getObjsInfo()[1]['location']
+            obj_loc=np.array(self.findObj(id=obj_id)['location'])
+            obj_loc[0]+=4
+            obj_loc[1]-=6
+            for i in range(100):  
+                time_step+=1
+                sensor = self.getSensorsData(handSide='All',type='full')
+                middle = np.array(sensor[-10]['data'])
+                p = max(abs(obj_loc-middle))/gap if max(abs(obj_loc-middle))>gap else 1
+                vector = (obj_loc-middle)/p
+                if max(abs(obj_loc[:2]-middle[:2]))<1 and max(abs(obj_loc[2:]-middle[2:]))<2:
+                    break
+                self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
+                if return_action:
+                    yield [0,0,0,*vector]
+            obj_loc=np.array(self.findObj(id=obj_id)['location'])
+            obj_loc[0]-=4
+            obj_loc[1]-=2
+            for i in range(100):
+                time_step+=1
+                sensor = self.getSensorsData(handSide='All',type='full')
+                middle = np.array(sensor[-10]['data'])
+                p = max(abs(obj_loc-middle))/gap if max(abs(obj_loc-middle))>gap else 1
+                vector = (obj_loc-middle)/p
+                if max(abs(obj_loc[:2]-middle[:2]))<1 and max(abs(obj_loc[2:]-middle[2:]))<2:
+                    break
+                self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
+                if return_action:
+                    yield [0,0,0,*vector]
+        elif handSide=='Left':
+            target_oringin_loc=self.getObjsInfo()[1]['location']
+            obj_loc=np.array(self.findObj(id=obj_id)['location'])
+            obj_loc[0]+=4
+            obj_loc[1]+=6
+            for i in range(100):  
+                time_step+=1
+                sensor = self.getSensorsData(handSide='All',type='full')
+                middle = np.array(sensor[-24]['data'])
+                p = max(abs(obj_loc-middle))/gap if max(abs(obj_loc-middle))>gap else 1
+                vector = (obj_loc-middle)/p
+                if max(abs(obj_loc[:2]-middle[:2]))<1 and max(abs(obj_loc[2:]-middle[2:]))<2:
+                    break
+                self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
+                if return_action:
+                    yield [*vector,0,0,0]
+            obj_loc=np.array(self.findObj(id=obj_id)['location'])
+            obj_loc[0]-=4
+            obj_loc[1]+=3
+            for i in range(100):
+                time_step+=1
+                sensor = self.getSensorsData(handSide='All',type='full')
+                middle = np.array(sensor[-24]['data'])
+                p = max(abs(obj_loc-middle))/gap if max(abs(obj_loc-middle))>gap else 1
+                vector = (obj_loc-middle)/p
+                if max(abs(obj_loc[:2]-middle[:2]))<1 and max(abs(obj_loc[2:]-middle[2:]))<2:
+                    break
+                self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
+                if return_action:
+                    yield [*vector,0,0,0]
+                    
     def graspTargetObj(self,obj_id,handSide='Right',gap=0.3,angle=None,lift_h=20,return_action=False,keep_rpy=(10,0,0)):
         assert  handSide in ['Right','Left']
         method='absolute'

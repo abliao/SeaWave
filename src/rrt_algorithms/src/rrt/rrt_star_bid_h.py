@@ -2,8 +2,8 @@
 # file 'LICENSE', which is part of this source code package.
 import random
 
-from src.rrt.rrt_star_bid import RRTStarBidirectional
-from src.utilities.geometry import dist_between_points, pairwise
+from .rrt_star_bid import RRTStarBidirectional
+from ..utilities.geometry import dist_between_points, pairwise
 
 
 class RRTStarBidirectionalHeuristic(RRTStarBidirectional):
