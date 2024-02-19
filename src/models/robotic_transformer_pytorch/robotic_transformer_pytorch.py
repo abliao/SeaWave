@@ -643,11 +643,11 @@ class ClipEmbedder(nn.Module):
         device=image.device
         self.model.to(device)
 
-        # with torch.no_grad():
-        image = self.transform(image)
-        _, image_token = self.model.encode_image(image)
-        text = self.tokenizer(text).to(device)
-        text_token = self.model.encode_text(text)
+        with torch.no_grad():
+            image = self.transform(image)
+            _, image_token = self.model.encode_image(image)
+            text = self.tokenizer(text).to(device)
+            text_token = self.model.encode_text(text)
 
         image_token = self.img_mlp_head(image_token)
         text_token = self.text_mlp_head(text_token)
@@ -1143,7 +1143,7 @@ class DamWorld(nn.Module):
     ):
         super().__init__()
         self.embedder = ClipEmbedder(model_arch=clip_arch,model_path=clip_path,clip_visual_dim=clip_visual_dim,clip_text_dim=clip_text_dim,output_dims=embed_dim)
-        self.tokenizer = Tokenizer(efficientnet_config={'model_path':'efficientnet-b3','output_dims':embed_dim})
+        # self.tokenizer = Tokenizer(efficientnet_config={'model_path':'efficientnet-b3','output_dims':embed_dim})
 
         self.transformer_depth = depth
         self.embed_dim = embed_dim

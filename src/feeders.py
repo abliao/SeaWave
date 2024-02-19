@@ -248,13 +248,7 @@ class Feeder(Dataset):
                     state = np.concatenate([state,np.array(sensor['data'])-np.array([x,y,z])])
             state[:]/=10
             states.append(state)
-            
-            # 第一次数据收集有bug 手动修改数据
-            if len(frame['action'])==3:
-                frame['action'] = frame['action']+(0,0,0,0)
-                if frame['action'][0]<-10:
-                    frame['action']=list(frame['action'])
-                    frame['action'][0]=sample['trajectory'][index+1]['action'][0]
+
             if self.control == 'ee':
                 action = np.array(frame['action'],dtype=np.float64)
             else:

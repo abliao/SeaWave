@@ -134,20 +134,22 @@ class Trainer:
             self.agent.load(**cfg.initialization, device=self.device)
 
     def run(self) -> None:
-
+        min_loss = None
         for epoch in range(self.start_epoch, 1 + self.cfg.common.epochs):
 
             print(f"\nEpoch {epoch} / {self.cfg.common.epochs}\n")
             start_time = time.time()
             to_log = []
-
+            save_should = False
             if self.cfg.training.should:
                 to_log += self.train_agent(epoch)
 
             if self.cfg.evaluation.should and (epoch % self.cfg.evaluation.every == 0):
                 to_log += self.eval_agent(epoch)
-
-            if self.cfg.training.should:
+                if min_loss is None or min_loss>to_log[-1]['agent/eval/total_loss']:
+                    min_loss = to_log[-1]['agent/eval/total_loss']
+                    save_should = True
+            if self.cfg.training.should and save_should:
                 self.save_checkpoint(epoch, save_agent_only=not self.cfg.common.do_checkpoint)
 
             to_log.append({'duration': (time.time() - start_time) / 3600})

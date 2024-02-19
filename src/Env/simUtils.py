@@ -52,7 +52,7 @@ class SimServer():
     obj_range=[[-70, -30],
             [-30, 10],
             [95, 105]]
-    
+    joint_control = [-2,-3,-1,11,10,12,16,-4,-10,-9,-8,-7,9,3,4,5,6]
     def __init__(self,channel,scene_num = 1, map_id = 2):
         self.channel = channel
         self.scene_num = scene_num
@@ -128,7 +128,7 @@ class Sim(SimServer):
                     33,36,39,42,43,44,46,47,48]
         joints=self.getJoints(type='angle')
         values=[joints[id] for id in map_id]
-        return values
+        return np.array(values)
 
     def joint2actuator(self,joints):
         map_id=[0,1,2,3,6,9,12,15,16,17,19,20,21,22,23,24,25,26,27,28,29,30,
@@ -279,6 +279,7 @@ class Sim(SimServer):
         assert handSide in ['Right','Left']
         
         values = self.getActuators()
+        # values[self.joint_control] = self.joints[self.joint_control]
         if handSide=='Right':
             hand_ids=[-2,-3,-1]
         else:
@@ -287,6 +288,8 @@ class Sim(SimServer):
             values[id]=angle
 
         self.changeJoints(values,method='new')
+        values = self.getActuators()
+        self.joints[hand_ids] = values[hand_ids]
     
     def getWrist(self,handSide='Right'):
         # 控制关节移动, 数量和顺序参考GetActuatorRanges结果
@@ -382,9 +385,13 @@ class Sim(SimServer):
     
     def bow_head(self):
         values = self.getActuators()
+        # values[self.joint_control] = self.joints[self.joint_control]
         values[16]=35
         message=self.changeJoints(values,method='new')
-        return message
+        do_values = values
+        values = self.getActuators()
+        self.joints[16] = values[16]
+        return do_values
     
     def grasp(self,type='grasp',angle=None,handSide='Right'):
         # 抓取或释放
@@ -395,8 +402,8 @@ class Sim(SimServer):
         if type==1:
             type = 'grasp'
 
-        value = self.getActuators()
-
+        values = self.getActuators()
+        # values[self.joint_control] = self.joints[self.joint_control]
         if handSide=='Right':
             hand_ids=[-4,-10,-9,-8,-7]
         else:
@@ -407,16 +414,18 @@ class Sim(SimServer):
             else:
                 angle=(-5,-5)
 
-        value[hand_ids[0]]=angle[0]
-        value[hand_ids[1]]=angle[1]
-        self.changeJoints(value,method='new')
+        values[hand_ids[0]]=angle[0]
+        values[hand_ids[1]]=angle[1]
+        self.changeJoints(values,method='new')
         time.sleep(0.5)
         for id in hand_ids[2:]:
-            value[id]=angle[1]
-        self.changeJoints(value,method='new')
+            values[id]=angle[1]
+        self.changeJoints(values,method='new')
         time.sleep(0.2)
         self.grasp_state[handSide]=1 if type=='grasp' else 0
         time.sleep(2)
+        values = self.getActuators()
+        self.joints[hand_ids] = values[hand_ids]
 
     def release(self,angle=None,handSide='Right'):
         self.grasp(type='release',angle=angle,handSide=handSide)
@@ -479,12 +488,11 @@ class Sim(SimServer):
     
     def closeTargetObj(self,obj_id,handSide='Right',gap=1.5,return_action=False,keep_rpy=(0,0,0)):
         if handSide=='Right':
-            target_oringin_loc=self.getObjsInfo()[1]['location']
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
             obj_loc[0]+=4
             obj_loc[1]-=6
-            for i in range(100):  
-                time_step+=1
+            obj_loc[2] -= 1
+            for i in range(100):
                 sensor = self.getSensorsData(handSide='All',type='full')
                 middle = np.array(sensor[-10]['data'])
                 p = max(abs(obj_loc-middle))/gap if max(abs(obj_loc-middle))>gap else 1
@@ -495,10 +503,10 @@ class Sim(SimServer):
                 if return_action:
                     yield [0,0,0,*vector]
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
-            obj_loc[0]-=4
-            obj_loc[1]-=2
+            obj_loc[0]-=4+2
+            obj_loc[1]-=2-1
+            obj_loc[2]-=1
             for i in range(100):
-                time_step+=1
                 sensor = self.getSensorsData(handSide='All',type='full')
                 middle = np.array(sensor[-10]['data'])
                 p = max(abs(obj_loc-middle))/gap if max(abs(obj_loc-middle))>gap else 1
@@ -508,13 +516,26 @@ class Sim(SimServer):
                 self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
                 if return_action:
                     yield [0,0,0,*vector]
+            # obj_loc = np.array(self.findObj(id=obj_id)['location'])
+            # obj_loc[0] -= 4+2
+            # obj_loc[1] -= 2-1
+            # gap/=2
+            # for i in range(3):
+            #     sensor = self.getSensorsData(handSide='All', type='full')
+            #     middle = np.array(sensor[-10]['data'])
+            #     p = max(abs(obj_loc - middle)) / gap if max(abs(obj_loc - middle)) > gap else 1
+            #     vector = (obj_loc - middle) / p
+            #     if max(abs(obj_loc[:2] - middle[:2])) < 1 and max(abs(obj_loc[2:] - middle[2:])) < 2:
+            #         break
+            #     self.moveHand(*vector, handSide=handSide, method='diff', gap=gap, keep_rpy=(0, 0, 0))
+            #     if return_action:
+            #         yield [0, 0, 0, *vector]
         elif handSide=='Left':
-            target_oringin_loc=self.getObjsInfo()[1]['location']
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
             obj_loc[0]+=4
             obj_loc[1]+=6
-            for i in range(100):  
-                time_step+=1
+            obj_loc[2] -= 1
+            for i in range(100):
                 sensor = self.getSensorsData(handSide='All',type='full')
                 middle = np.array(sensor[-24]['data'])
                 p = max(abs(obj_loc-middle))/gap if max(abs(obj_loc-middle))>gap else 1
@@ -525,10 +546,10 @@ class Sim(SimServer):
                 if return_action:
                     yield [*vector,0,0,0]
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
-            obj_loc[0]-=4
-            obj_loc[1]+=4
+            obj_loc[0]-=4+2
+            obj_loc[1]+=4-1
+            obj_loc[2] -= 1
             for i in range(100):
-                time_step+=1
                 sensor = self.getSensorsData(handSide='All',type='full')
                 middle = np.array(sensor[-24]['data'])
                 p = max(abs(obj_loc-middle))/gap if max(abs(obj_loc-middle))>gap else 1
@@ -538,6 +559,20 @@ class Sim(SimServer):
                 self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
                 if return_action:
                     yield [*vector,0,0,0]
+            # obj_loc = np.array(self.findObj(id=obj_id)['location'])
+            # obj_loc[0] -= 4+2
+            # obj_loc[1] += 4-1
+            # gap/=2
+            # for i in range(3):
+            #     sensor = self.getSensorsData(handSide='All', type='full')
+            #     middle = np.array(sensor[-24]['data'])
+            #     p = max(abs(obj_loc - middle)) / gap if max(abs(obj_loc - middle)) > gap else 1
+            #     vector = (obj_loc - middle) / p
+            #     if max(abs(obj_loc[:2] - middle[:2])) < 1 and max(abs(obj_loc[2:] - middle[2:])) < 2:
+            #         break
+            #     self.moveHand(*vector, handSide=handSide, method='diff', gap=gap, keep_rpy=(0, 0, 0))
+            #     if return_action:
+            #         yield [*vector, 0, 0, 0]
                     
     def graspTargetObj(self,obj_id,handSide='Right',gap=0.3,angle=None,lift_h=20,return_action=False,keep_rpy=(10,0,0)):
         assert  handSide in ['Right','Left']
@@ -608,6 +643,7 @@ class Sim(SimServer):
                         -2.1731982231140137,-2.1735899448394775,-2.173584222793579,-2.1731984615325928,-2.1735899448394775,-2.173584461212158,
                         -2.173130512237549,-2.1735763549804688,-2.173611640930176,-2.1731984615325928,-2.1735899448394775,-2.173584461212158,
                         -51.53587341308594,-21.0319881439209,-1.1483358144760132,-1.1480298042297363,30.00035858154297,-5.126368522644043,-25.800668716430664]
+        self.joints = np.array(self.joint2actuator(joints))
         self.changeJoints(joints)
         time.sleep(0.5)
         self.EnableEndPointCtrl(True)

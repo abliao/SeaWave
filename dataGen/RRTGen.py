@@ -26,8 +26,8 @@ with open('Imitation_data/RLexpert/0718_single_merge_data_new.pkl', 'rb') as f:
 
 import os
 
-output_path = '/data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_12'
-data_info="手的初始位置在上面，固定桌子高度,随机变换初始位置,随机生成物体位置（不使用达闼数据）,第一段轨迹往前移"
+output_path = '/data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_2'
+data_info="手的初始位置在上面，固定桌子高度,随机变换初始位置,随机生成物体位置（不使用达闼数据），两个物体,修改轨迹"
 meta_data_path = output_path + os.sep + 'meta_data.json'
 n_objs = 1
 can_list = [12, 14, 16, 17, 18]
@@ -132,7 +132,7 @@ for epoch in range(1):
 
         tx, ty, tz = sim.findObj(id=1)['location']
         ox, oy, oz = sim.getSensorsData('Right')[0]
-        ex, ey, ez = tx + 14 + 4, ty - 3.5 - 2.5, tz - 2
+        ex, ey, ez = tx + 14 + 4+2, ty - 3.5 - 2.5, tz - 2
         k = int(max(np.abs([ex - ox, ey - oy, ez - oz])) / 1) + 1
         last_action = (ox - sx, oy - sy, oz)
         for nx, ny, nz in np.linspace([ox, oy, oz], [ex, ey, ez], k + 1)[1:]:

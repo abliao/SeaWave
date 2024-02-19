@@ -183,6 +183,8 @@ def grasp(sim,agent,log,robot_location,objList,device='cuda',history_len=1,handS
         predict=agent.act(batch)
         predict=predict[0].cpu().detach().numpy()
         last_action=predict
+        if handSide=='Right':
+            last_action[:3],last_action[3:6]= last_action[3:6], last_action[:3]
         if control=='ee':
             if sim.grasp_state[handSide]==0:
                 msg=sim.moveHand(x=last_action[0],y=last_action[1],z=last_action[2],keep_rpy=(0,0,0),method='diff',gap=0.1,handSide=handSide)
@@ -204,7 +206,7 @@ def grasp(sim,agent,log,robot_location,objList,device='cuda',history_len=1,handS
         if if_grasp and sim.grasp_state[handSide]==0:
             sim.grasp(angle=(65,68))
             # time.sleep(3)
-            print(f'to grasp, grasp_state={sim.grasp_state[handSide]}')
+            print(f'to grasp, grasp_state={sim.grasp_state[handSide]}, sigmoid(last_action[-1])={sigmoid(last_action[-1])}')
             log['grasp_img'] = sim.getImage()
         # elif not if_grasp and sim.grasp_state[handSide]==1:
         #     sim.release()
@@ -274,13 +276,13 @@ def Tester(agent,cfg,episode_dir):
         other_obj_ids = random.choices([x for x in sim.objs.ID.values if x!=obj_id],k=n_objs-1)
         ids = [obj_id]+other_obj_ids
 
-        # 替换成训练数据
-        objList = objLists[index]
-        ids = [objList[0][0]]
-        target_loc = objList[0][1:3]
-        objList = sim.genObjs(n=n_objs, ids=ids, handSide=handSide, h=sim.desk_height, target_loc=target_loc)
+        # # 替换成训练数据
+        # objList = objLists[index]
+        # ids = [objList[0][0]]
+        # target_loc = objList[0][1:3]
+        # objList = sim.genObjs(n=n_objs, ids=ids, handSide=handSide, h=sim.desk_height, target_loc=target_loc)
 
-        # objList=sim.genObjs(n=n_objs,ids=ids,handSide=handSide,h=sim.desk_height)
+        objList=sim.genObjs(n=n_objs,ids=ids,handSide=handSide,h=sim.desk_height)
         
         obj_id = objList[0][0]
         target_obj_id = obj_id

@@ -78,7 +78,8 @@ class Agent(nn.Module):
         # print(predict_actions[:,-1], actions[:,-1],F.binary_cross_entropy_with_logits(predict_actions[:,-1], actions[:,-1]))
         # loss_actions = (F.mse_loss(predict_actions[:,:-1], actions[:,:-1])+F.binary_cross_entropy_with_logits(predict_actions[:,-1], actions[:,-1]))*self.loss_weight[0] 
         
-        loss_actions = (F.mse_loss(predict_actions[:,:3], actions[:,:3])+F.binary_cross_entropy_with_logits(predict_actions[:,-1], actions[:,-1]))*self.loss_weight[0] 
+        loss_actions = (F.mse_loss(predict_actions[:,3:-1], actions[:,3:-1])+F.binary_cross_entropy_with_logits(predict_actions[:,-1], actions[:,-1]))*self.loss_weight[0]
+        # loss_actions = (F.mse_loss(predict_actions[:, 3:], actions[:, 3:]) ) * self.loss_weight[0]
         loss_observation=loss_actions*0
         if prediction is not None:
             training=self.training
