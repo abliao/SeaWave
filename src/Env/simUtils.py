@@ -35,7 +35,7 @@ class SimServer():
     'Shape': ['cylinder', 'cylinder, short', 'cylinder', 'cylinder', 'cylinder, tall and slender', 'cylinder', 'cylinder', 'cuboid', 'cylinder, high'],
     'Application': ['a milk product', 'a adhesive product', 'a coffee beverage', 'a container', 'a milk product', 'a refreshing beverage', 'a milk product', 'a refreshing beverage', 'a snack'],
     'Other': ['a tapered mouth', None, None, None, None, 'a tapered mouth', 'green cap', None, 'yellow cap'],
-    'reshape': [(1,1,1),(1,1,1),(0.9,0.9,0.9),(1,1,1),(1,1,1),(1,1,1),(0.9,0.9,0.9),(1,1,1),(1,1,1)],
+    'reshape': [(1,1,1),(1,1,1),(0.9,0.9,0.9),(1,1,1),(0.9,0.9,0.9),(1,1,1),(0.9,0.9,0.9),(1,1,1),(1,1,1)],
     }
     can_list = [12, 14, 16, 17, 18]
     objs = pd.DataFrame(data)
@@ -279,7 +279,7 @@ class Sim(SimServer):
         assert handSide in ['Right','Left']
         
         values = self.getActuators()
-        # values[self.joint_control] = self.joints[self.joint_control]
+        values[self.joint_control] = self.joints[self.joint_control]
         if handSide=='Right':
             hand_ids=[-2,-3,-1]
         else:
@@ -385,12 +385,13 @@ class Sim(SimServer):
     
     def bow_head(self):
         values = self.getActuators()
-        # values[self.joint_control] = self.joints[self.joint_control]
+        values[self.joint_control] = self.joints[self.joint_control]
         values[16]=35
         message=self.changeJoints(values,method='new')
         do_values = values
         values = self.getActuators()
         self.joints[16] = values[16]
+        time.sleep(0.2)
         return do_values
     
     def grasp(self,type='grasp',angle=None,handSide='Right'):
@@ -403,7 +404,7 @@ class Sim(SimServer):
             type = 'grasp'
 
         values = self.getActuators()
-        # values[self.joint_control] = self.joints[self.joint_control]
+        values[self.joint_control] = self.joints[self.joint_control]
         if handSide=='Right':
             hand_ids=[-4,-10,-9,-8,-7]
         else:
@@ -486,7 +487,7 @@ class Sim(SimServer):
                 if obj['name']==name:
                     return obj
     
-    def closeTargetObj(self,obj_id,handSide='Right',gap=1.5,return_action=False,keep_rpy=(0,0,0)):
+    def closeTargetObj(self,obj_id,handSide='Right',gap=1,return_action=False,keep_rpy=(0,0,0)):
         if handSide=='Right':
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
             obj_loc[0]+=4

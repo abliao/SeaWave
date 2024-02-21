@@ -27,15 +27,15 @@ env:
 
 datasets:
   num_worker: 4
-  batch_size: 4
+  batch_size: 2
   history_len: 3
   train:
     _target_: feeders.Feeder
     control: ${env.control}
     data_path:
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_11
-      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_3
-#      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_2
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_4
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_3
     instructions_path: /data2/liangxiwen/zkd/IL/instructions/training.pkl
     history_len: ${datasets.history_len}
     instructions_level: 
@@ -53,8 +53,8 @@ datasets:
     control: ${env.control}
     data_path:
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_11
-      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_3
-#      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_2
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_4
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_3
     instructions_path: /data2/liangxiwen/zkd/IL/instructions/training.pkl
     history_len: ${datasets.history_len}
     instructions_level: 
@@ -91,7 +91,9 @@ common:
   resume: False # set by resume.sh script only.
 
 initialization:
-  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-19/13-03-59/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/21-41-10/checkpoints/last.pt #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/14-02-01/checkpoints/last.pt  #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-15/10-31-52/checkpoints/last.pt
+  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-21/02-14-29/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/21-41-10/checkpoints/last.pt #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/14-02-01/checkpoints/last.pt  #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-15/10-31-52/checkpoints/last.pt
+  # 2024-02-20/11-44-02 87%成功率
+  # 14-02-01 : 80%成功率
   load_tokenizer: False
   load_world_model: True 
   load_actor: True 

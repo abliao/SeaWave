@@ -208,8 +208,8 @@ def grasp(sim,agent,log,robot_location,objList,device='cuda',history_len=1,handS
             # time.sleep(3)
             print(f'to grasp, grasp_state={sim.grasp_state[handSide]}, sigmoid(last_action[-1])={sigmoid(last_action[-1])}')
             log['grasp_img'] = sim.getImage()
-        # elif not if_grasp and sim.grasp_state[handSide]==1:
-        #     sim.release()
+        elif not if_grasp and sim.grasp_state[handSide]==1:
+            sim.release()
         
         log['track'].append(last_action.copy())
         log['imgs'].append(sim.getImage())
@@ -255,7 +255,7 @@ def Tester(agent,cfg,episode_dir):
         instructions=pickle.load(f)
 
     logs=[]
-    n_objs=1
+    n_objs=2
     
     handSide='Right'
     with open('/data2/liangxiwen/zkd/SeaWave/locs.pkl','rb') as f:

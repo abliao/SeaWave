@@ -23,16 +23,16 @@ sim = Sim(host, scene_id=0)
 
 import pickle
 
-with open('Imitation_data/RLexpert/0718_single_merge_data_new.pkl', 'rb') as f:
-    df = pickle.load(f)
+# with open('Imitation_data/RLexpert/0718_single_merge_data_new.pkl', 'rb') as f:
+#     df = pickle.load(f)
 
 import os
 
-output_path = '/data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_4'
-data_info="使用中指判断位置,逼近过程中保持摄像头不变,转动关节时其余关节使用旧状态,增加第二段轨迹长度"
+output_path = '/data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_left'
+data_info="左手"
 meta_data_path = output_path + os.sep + 'meta_data.json'
 n_objs = 1
-handSide = 'Right'
+handSide = 'Left'
 can_list = [12, 14, 16, 17, 18]
 if not os.path.exists(output_path):
     os.makedirs(output_path)
@@ -88,12 +88,11 @@ start_index = meta_data['start_index']
 for epoch in range(1):
     print('Epoch:', epoch)
     offline_data = dict()
-    shuffled_list = df.copy()
-    random.shuffle(shuffled_list)
-    for index, data in tqdm(enumerate(shuffled_list)):
+    # shuffled_list = df.copy()
+    # random.shuffle(shuffled_list)
+    for index in tqdm(range(500)):
         if index < start_index:
             continue
-        data = deepcopy(data)
         sim.reset()
         sim.bow_head()
         time.sleep(1)
@@ -102,7 +101,6 @@ for epoch in range(1):
         sim.removeObjects('all')
         objs = sim.getObjsInfo()
         scene = sim.removeObjects([0])
-        loc = data['obj_loc']
         desk_height = 98 # 固定桌子高度
         desk_id = 1
         sim.addDesk(desk_id, h=desk_height)
@@ -113,7 +111,6 @@ for epoch in range(1):
         target_origin_loc = sim.getObjsInfo()[1]['location']
         obj_id = objList[0][0]
         target_obj = sim.objs[sim.objs.ID == obj_id].Name.values[0]
-        XX, YY, _ = data['robot_location']
         sx, sy = sim.getObservation().location.X, sim.getObservation().location.Y
 
         x = np.random.uniform(-10, 10)
@@ -124,7 +121,7 @@ for epoch in range(1):
         ox, oy, oz = sim.getSensorsData(handSide=handSide)[0]
         offline_data['from_file'] = index
         offline_data['robot_location'] = (sx, sy, 90)
-        offline_data['deskInfo'] = {'id': desk_id, 'height': loc[2]}
+        offline_data['deskInfo'] = {'id': desk_id, 'height': sim.desk_height}
         offline_data['objList'] = objList
         offline_data['targetObjID'] = obj_id
         offline_data['initState'] = sim.getState()
