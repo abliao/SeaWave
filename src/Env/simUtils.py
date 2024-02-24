@@ -413,7 +413,7 @@ class Sim(SimServer):
             if type=='grasp':
                 angle=(65,68)
             else:
-                angle=(-5,-5)
+                angle=(10,-5)
 
         values[hand_ids[0]]=angle[0]
         values[hand_ids[1]]=angle[1]

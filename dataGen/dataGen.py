@@ -28,7 +28,7 @@ import pickle
 
 import os
 
-output_path = '/data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_left'
+output_path = '/data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_test'
 data_info="左手"
 meta_data_path = output_path + os.sep + 'meta_data.json'
 n_objs = 1
@@ -90,7 +90,7 @@ for epoch in range(1):
     offline_data = dict()
     # shuffled_list = df.copy()
     # random.shuffle(shuffled_list)
-    for index in tqdm(range(500)):
+    for index in tqdm(range(1500)):
         if index < start_index:
             continue
         sim.reset()

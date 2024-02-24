@@ -204,7 +204,7 @@ def grasp(sim,agent,log,robot_location,objList,device='cuda',history_len=1,handS
         if_grasp = sigmoid(last_action[-1])>0.5
 
         if if_grasp and sim.grasp_state[handSide]==0:
-            sim.grasp(angle=(65,68))
+            sim.grasp(angle=(65,68),handSide=handSide)
             # time.sleep(3)
             print(f'to grasp, grasp_state={sim.grasp_state[handSide]}, sigmoid(last_action[-1])={sigmoid(last_action[-1])}')
             log['grasp_img'] = sim.getImage()
@@ -255,9 +255,9 @@ def Tester(agent,cfg,episode_dir):
         instructions=pickle.load(f)
 
     logs=[]
-    n_objs=2
+    n_objs=1
     
-    handSide='Right'
+    handSide='Left'
     with open('/data2/liangxiwen/zkd/SeaWave/locs.pkl','rb') as f:
         objLists = pickle.load(f)
     for index in tqdm(range(100)):
@@ -302,7 +302,7 @@ def Tester(agent,cfg,episode_dir):
         log['instruction']=instr
         sx,sy = sim.getObservation().location.X, sim.getObservation().location.Y
         robot_location = (sx,sy,90)
-        log=grasp(sim,agent,log,robot_location=robot_location,objList=objList,device=device,history_len=history_len,control=control)
+        log=grasp(sim,agent,log,robot_location=robot_location,objList=objList,device=device,history_len=history_len,control=control,handSide=handSide)
         
         images = [ImageClip(frame.astype(np.uint8), duration=1/6) for frame in log['imgs']]
         # 创建视频
