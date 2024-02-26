@@ -35,7 +35,7 @@ class SimServer():
     'Shape': ['cylinder', 'cylinder, short', 'cylinder', 'cylinder', 'cylinder, tall and slender', 'cylinder', 'cylinder', 'cuboid', 'cylinder, high'],
     'Application': ['a milk product', 'a adhesive product', 'a coffee beverage', 'a container', 'a milk product', 'a refreshing beverage', 'a milk product', 'a refreshing beverage', 'a snack'],
     'Other': ['a tapered mouth', None, None, None, None, 'a tapered mouth', 'green cap', None, 'yellow cap'],
-    'reshape': [(1,1,1),(1,1,1),(0.9,0.9,0.9),(1,1,1),(0.9,0.9,0.9),(1,1,1),(0.9,0.9,0.9),(1,1,1),(1,1,1)],
+    'reshape': [(0.9,0.9,0.9),(1,1,1),(0.8,0.8,0.9),(1,1,1),(0.9,0.9,0.9),(1,1,1),(0.8,0.8,0.9),(1,1,1),(1,1,1)],
     }
     can_list = [12, 14, 16, 17, 18]
     objs = pd.DataFrame(data)
@@ -413,16 +413,27 @@ class Sim(SimServer):
             if type=='grasp':
                 angle=(65,68)
             else:
-                angle=(10,-5)
+                angle=(-20,-20)
 
-        values[hand_ids[0]]=angle[0]
-        values[hand_ids[1]]=angle[1]
-        self.changeJoints(values,method='new')
-        time.sleep(0.5)
-        for id in hand_ids[2:]:
-            values[id]=angle[1]
-        self.changeJoints(values,method='new')
-        time.sleep(0.2)
+        if type == 'grasp':
+            values[hand_ids[0]]=angle[0]
+            values[hand_ids[1]]=angle[1]
+            self.changeJoints(values,method='new')
+            time.sleep(0.5)
+            for id in hand_ids[2:]:
+                values[id]=angle[1]
+            self.changeJoints(values,method='new')
+            time.sleep(0.2)
+        else:
+            for id in hand_ids[2:]:
+                values[id]=angle[1]
+            self.changeJoints(values,method='new')
+            time.sleep(0.5)
+            values[hand_ids[0]]=angle[0]
+            values[hand_ids[1]]=angle[1]
+            self.changeJoints(values,method='new')
+            time.sleep(0.2)
+            
         self.grasp_state[handSide]=1 if type=='grasp' else 0
         time.sleep(2)
         values = self.getActuators()
