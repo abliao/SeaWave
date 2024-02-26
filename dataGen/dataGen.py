@@ -28,7 +28,7 @@ import pickle
 
 import os
 
-output_path = '/data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_test'
+output_path = '/data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_left_2'
 data_info="左手"
 meta_data_path = output_path + os.sep + 'meta_data.json'
 n_objs = 1

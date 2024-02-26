@@ -517,20 +517,6 @@ class Sim(SimServer):
                 self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
                 if return_action:
                     yield [0,0,0,*vector]
-            # obj_loc = np.array(self.findObj(id=obj_id)['location'])
-            # obj_loc[0] -= 4+2
-            # obj_loc[1] -= 2-1
-            # gap/=2
-            # for i in range(3):
-            #     sensor = self.getSensorsData(handSide='All', type='full')
-            #     middle = np.array(sensor[-10]['data'])
-            #     p = max(abs(obj_loc - middle)) / gap if max(abs(obj_loc - middle)) > gap else 1
-            #     vector = (obj_loc - middle) / p
-            #     if max(abs(obj_loc[:2] - middle[:2])) < 1 and max(abs(obj_loc[2:] - middle[2:])) < 2:
-            #         break
-            #     self.moveHand(*vector, handSide=handSide, method='diff', gap=gap, keep_rpy=(0, 0, 0))
-            #     if return_action:
-            #         yield [0, 0, 0, *vector]
         elif handSide=='Left':
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
             obj_loc[0]+=4
@@ -547,8 +533,8 @@ class Sim(SimServer):
                 if return_action:
                     yield [*vector,0,0,0]
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
-            obj_loc[0]-=4+2
-            obj_loc[1]+=4-1
+            obj_loc[0]-=4
+            obj_loc[1]+=4
             obj_loc[2] -= 1
             for i in range(100):
                 sensor = self.getSensorsData(handSide='All',type='full')
@@ -560,20 +546,6 @@ class Sim(SimServer):
                 self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
                 if return_action:
                     yield [*vector,0,0,0]
-            # obj_loc = np.array(self.findObj(id=obj_id)['location'])
-            # obj_loc[0] -= 4+2
-            # obj_loc[1] += 4-1
-            # gap/=2
-            # for i in range(3):
-            #     sensor = self.getSensorsData(handSide='All', type='full')
-            #     middle = np.array(sensor[-24]['data'])
-            #     p = max(abs(obj_loc - middle)) / gap if max(abs(obj_loc - middle)) > gap else 1
-            #     vector = (obj_loc - middle) / p
-            #     if max(abs(obj_loc[:2] - middle[:2])) < 1 and max(abs(obj_loc[2:] - middle[2:])) < 2:
-            #         break
-            #     self.moveHand(*vector, handSide=handSide, method='diff', gap=gap, keep_rpy=(0, 0, 0))
-            #     if return_action:
-            #         yield [*vector, 0, 0, 0]
                     
     def graspTargetObj(self,obj_id,handSide='Right',gap=0.3,angle=None,lift_h=20,return_action=False,keep_rpy=(10,0,0)):
         assert  handSide in ['Right','Left']
