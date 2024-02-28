@@ -27,21 +27,20 @@ class SimServer():
             [11,'OfficeDesk2',80, -150, -10-5],
         ],columns=['ID','Name','H','X','Y'])
     data = {
-    'ID': [12, 13, 14, 15, 16, 17, 18, 19, 20],
-    'Name': ['ADMilk', 'GlueStick', 'Bernachon', 'Cup', 'Yogurt', 'NFCJuice', 'Milk', 'CocountWater', 'Chips'],
-    'center_height': [6.65707397460938, 2.6456069946289, 6.65229797363281, 4.74349212646484, 9.58502960205078, 6.60990142822266, 6.61824035644531, 6.62626647949219, 10.65509796142578],
-    'Color': ['white and green', 'white and green', 'brown', 'white', 'white and blue', 'yellow', 'white and green', 'white and green', 'brown'],
-    'Size': [4, 1, 4, 2, 5, 3, 4, 5, 6],
-    'Shape': ['cylinder', 'cylinder, short', 'cylinder', 'cylinder', 'cylinder, tall and slender', 'cylinder', 'cylinder', 'cuboid', 'cylinder, high'],
-    'Application': ['a milk product', 'a adhesive product', 'a coffee beverage', 'a container', 'a milk product', 'a refreshing beverage', 'a milk product', 'a refreshing beverage', 'a snack'],
-    'Other': ['a tapered mouth', None, None, None, None, 'a tapered mouth', 'green cap', None, 'yellow cap'],
-    'reshape': [(0.9,0.9,0.9),(1,1,1),(0.8,0.8,0.9),(1,1,1),(0.9,0.9,0.9),(1,1,1),(0.8,0.8,0.9),(1,1,1),(1,1,1)],
+    'ID': [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
+    'Name': ['ADMilk', 'GlueStick', 'Bernachon', 'Cup', 'Yogurt', 'NFCJuice', 'Milk', 'CocountWater', 'Chips','bottle', 'cabinet', 'AnMuXi', 'QuChenShi', 'XingBaKe'],
+    'center_height': [6.65707397460938, 2.6456069946289, 6.65229797363281, 4.74349212646484, 9.58502960205078, 6.60990142822266, 6.61824035644531, 6.62626647949219, 10.65509796142578, None, None, None, None, None],
+    'Color': ['white and green', 'white and green', 'brown', 'white', 'white and blue', 'yellow', 'white and green', 'white and green', 'brown', None, None, None, None, None],
+    'Size': [4, 1, 4, 2, 5, 3, 4, 5, 6, None, None, None, None, None],
+    'Shape': ['cylinder', 'cylinder, short', 'cylinder', 'cylinder', 'cylinder, tall and slender', 'cylinder', 'cylinder', 'cuboid', 'cylinder, high', None, None, None, None, None],
+    'Application': ['a milk product', 'a adhesive product', 'a coffee beverage', 'a container', 'a milk product', 'a refreshing beverage', 'a milk product', 'a refreshing beverage', 'a snack', None, None, None, None, None],
+    'Other': ['a tapered mouth', None, None, None, None, 'a tapered mouth', 'green cap', None, 'yellow cap', None, None, None, None, None],
+    'reshape': [(0.9,0.9,0.9),(1.2,1.2,1.2),(0.8,0.8,0.9),(0.8,0.8,1),(0.9,0.9,0.9),(1,1,1),(0.8,0.8,0.9),(0.7,0.7,1),(0.7,0.7,1), (0.6,0.6,0.6), (0.2,0.2,0.1), (1,1,1), (1,1,1), (1,1,1)],
     }
-    can_list = [12, 14, 16, 17, 18]
+    
     objs = pd.DataFrame(data)
-    objs = objs[objs['Name'] != 'Cup']
-    objs = objs[objs['Name'] != 'Chips']
-    objs = objs[objs['Name'] != 'CocountWater']
+    can_list = objs.ID.values
+    can_list = can_list[can_list!=22]
     target_range={'Right':[[-50, -35],
                         [-20, 5],
                         [95, 105]],
@@ -515,7 +514,8 @@ class Sim(SimServer):
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
             obj_loc[0]+=4
             obj_loc[1]-=6
-            obj_loc[2] -= 1
+            # obj_loc[2] -= 1
+            obj_loc[2] = self.desk_height+5.5
             for i in range(100):
                 sensor = self.getSensorsData(handSide='All',type='full')
                 middle = np.array(sensor[-10]['data'])
@@ -528,7 +528,8 @@ class Sim(SimServer):
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
             obj_loc[0]-=4+2
             obj_loc[1]-=2-1
-            obj_loc[2]-=1
+            # obj_loc[2]-=1
+            obj_loc[2] = self.desk_height+5.5
             for i in range(20):
                 sensor = self.getSensorsData(handSide='All',type='full')
                 middle = np.array(sensor[-10]['data'])
@@ -542,7 +543,8 @@ class Sim(SimServer):
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
             obj_loc[0]+=4
             obj_loc[1]+=6
-            obj_loc[2] -= 1
+            # obj_loc[2] -= 1
+            obj_loc[2] = self.desk_height+5.5
             for i in range(100):
                 sensor = self.getSensorsData(handSide='All',type='full')
                 middle = np.array(sensor[-24]['data'])
@@ -555,7 +557,8 @@ class Sim(SimServer):
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
             obj_loc[0]-=4
             obj_loc[1]+=4
-            obj_loc[2] -= 1
+            # obj_loc[2] -= 1
+            obj_loc[2] = self.desk_height+5.5
             for i in range(20):
                 sensor = self.getSensorsData(handSide='All',type='full')
                 middle = np.array(sensor[-24]['data'])
@@ -627,7 +630,7 @@ class SimAction(Sim):
     def __init__(self,channel,scene_id):
         super().__init__(channel,scene_id)
     
-    def graspTargetObj(self,obj_id,handSide='Right',gap=1,keep_rpy=(0,0,0)):
+    def graspTargetObj(self,obj_id,handSide='Right',gap=1,keep_rpy=(0,0,0),distance=10):
         self.release(handSide=handSide)
         for action in self.closeTargetObj(obj_id=obj_id,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
             yield [*action,0,0]
@@ -637,7 +640,7 @@ class SimAction(Sim):
         else:
             action = [0]*6+[0,1]
         yield action
-        height = 10
+        height = distance
         if handSide=='Left':
             action[2] = height/gap
         else:
@@ -705,8 +708,8 @@ class SimAction(Sim):
             yield action
     
     def checkMoveNear(self,obj1_id,obj2_id,distance=11):
-        obj1_loc = np.array(self.getObjsInfo()[obj1_id]['location'])
-        obj2_loc = np.array(self.getObjsInfo()[obj2_id]['location'])
+        obj1_loc = np.array(self.getObjsInfo()[obj1_id]['location'])[:2]
+        obj2_loc = np.array(self.getObjsInfo()[obj2_id]['location'])[:2]
         dis = np.linalg.norm(obj2_loc-obj1_loc)
         if dis<distance:
             return True
@@ -724,14 +727,14 @@ class SimAction(Sim):
 
     def checkKnockOver(self,obj_id):
         obj_loc=np.array(self.findObj(id=obj_id)['location'])
-        if self.desk_height+self.registry_objs[obj_id][1]/2>obj_loc[-1]:
+        if self.desk_height+self.registry_objs[obj_id][1]>obj_loc[-1]+1:
             return True
         return False
     
     def pushFront(self,obj_id,distance=10,handSide='Right',gap=1,keep_rpy=(0,0,0)):
         for action in self.closeTargetObj(obj_id,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
             yield action
-        for action in self.moveHandReturnAction(-distance,0,-2,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
+        for action in self.moveHandReturnAction(-distance,0,0,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
             yield action
     
     def checkPushFront(self,obj_id,distance=5):
@@ -745,7 +748,7 @@ class SimAction(Sim):
         assert handSide=='Right'
         for action in self.closeTargetObj(obj_id,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
             yield action
-        for action in self.moveHandReturnAction(0,distance,-2,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
+        for action in self.moveHandReturnAction(0,distance,0,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
             yield action
 
     def checkPushLeft(self,obj_id,distance=5):
@@ -759,7 +762,7 @@ class SimAction(Sim):
         assert handSide=='Left'
         for action in self.closeTargetObj(obj_id,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
             yield action
-        for action in self.moveHandReturnAction(0,-distance,-2,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
+        for action in self.moveHandReturnAction(0,-distance,0,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
             yield action
 
     def checkPushRight(self,obj_id,distance=5):
