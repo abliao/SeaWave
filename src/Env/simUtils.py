@@ -695,6 +695,7 @@ class SimAction(Sim):
     def moveNear(self,obj1_id,obj2_id,distance=10,handSide='Right',gap=1,keep_rpy=(0,0,0)):
         for action in self.graspTargetObj(obj_id=obj1_id,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
             yield action
+        time.sleep(0.2)
         if not self.checkGraspTargetObj(obj_id=obj1_id):
             return
         obj1_loc = np.array(self.getObjsInfo()[obj1_id]['location'])
