@@ -218,6 +218,12 @@ class Sim(SimServer):
                                                 sx=obj[7],sy=obj[8],sz=obj[9])]
             scene = self.sim_client.AddObjects(GrabSim_pb2.ObjectList(objects=objs, scene=self.scene_id))
             time.sleep(0.02)
+            
+            objLoc = self.getObjsInfo()[-1]['location']
+            if self.desk_height is None:
+                self.registry_objs.append(None)
+            else:
+                self.registry_objs.append((objLoc,objLoc[-1]-self.desk_height))
         return scene
 
     def removeObjects(self,ids='all'):
@@ -226,6 +232,9 @@ class Sim(SimServer):
         if ids=='all':
             objs=self.getObjsInfo()
             ids=[i for i in range(len(objs))]
+        ids.sort()
+        for id in ids[::-1]:
+            del self.registry_objs[id]
         scene=self.sim_client.RemoveObjects(GrabSim_pb2.RemoveList(IDs=ids, scene=self.scene_id))
         return scene
 
@@ -380,7 +389,10 @@ class Sim(SimServer):
                 self.set_world_rpy(keep_rpy,handSide=handSide)
                 time.sleep(0.05)
             # self.grasp(self.grasp_state[handSide])
-            yield [nx-lx,ny-ly,nz-lz,0,0,0,self.grasp_state[handSide]]
+            if handSide=='Left':
+                yield [nx-lx,ny-ly,nz-lz,0,0,0,self.grasp_state['Left'],self.grasp_state['Right']]
+            else:
+                yield [0,0,0,nx-lx,ny-ly,nz-lz,self.grasp_state['Left'],self.grasp_state['Right']]
             # lx,ly,lz=nx,ny,nz
     
     def bow_head(self):
@@ -442,7 +454,7 @@ class Sim(SimServer):
     def release(self,angle=None,handSide='Right'):
         self.grasp(type='release',angle=angle,handSide=handSide)
 
-    def addDesk(self,desk_id=None,name=None,h=100,dx=0,dy=0):
+    def addDesk(self,desk_id=None,name=None,h=98,dx=0,dy=0):
         assert (desk_id is not None) or (name is not None)
         if desk_id is not None:
             loc=self.desks[self.desks['ID']==desk_id].values[0][-3:] # h,X,Y
@@ -498,7 +510,7 @@ class Sim(SimServer):
                 if obj['name']==name:
                     return obj
     
-    def closeTargetObj(self,obj_id,handSide='Right',gap=1,return_action=False,keep_rpy=(0,0,0)):
+    def closeTargetObj(self,obj_id,handSide='Right',gap=1,keep_rpy=(0,0,0)):
         if handSide=='Right':
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
             obj_loc[0]+=4
@@ -512,13 +524,12 @@ class Sim(SimServer):
                 if max(abs(obj_loc[:2]-middle[:2]))<1 and max(abs(obj_loc[2:]-middle[2:]))<2:
                     break
                 self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
-                if return_action:
-                    yield [0,0,0,*vector]
+                yield [0,0,0,*vector]
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
             obj_loc[0]-=4+2
             obj_loc[1]-=2-1
             obj_loc[2]-=1
-            for i in range(100):
+            for i in range(20):
                 sensor = self.getSensorsData(handSide='All',type='full')
                 middle = np.array(sensor[-10]['data'])
                 p = max(abs(obj_loc-middle))/gap if max(abs(obj_loc-middle))>gap else 1
@@ -526,8 +537,7 @@ class Sim(SimServer):
                 if max(abs(obj_loc[:2]-middle[:2]))<1 and max(abs(obj_loc[2:]-middle[2:]))<2:
                     break
                 self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
-                if return_action:
-                    yield [0,0,0,*vector]
+                yield [0,0,0,*vector]
         elif handSide=='Left':
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
             obj_loc[0]+=4
@@ -541,13 +551,12 @@ class Sim(SimServer):
                 if max(abs(obj_loc[:2]-middle[:2]))<1 and max(abs(obj_loc[2:]-middle[2:]))<2:
                     break
                 self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
-                if return_action:
-                    yield [*vector,0,0,0]
+                yield [*vector,0,0,0]
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
             obj_loc[0]-=4
             obj_loc[1]+=4
             obj_loc[2] -= 1
-            for i in range(100):
+            for i in range(20):
                 sensor = self.getSensorsData(handSide='All',type='full')
                 middle = np.array(sensor[-24]['data'])
                 p = max(abs(obj_loc-middle))/gap if max(abs(obj_loc-middle))>gap else 1
@@ -555,50 +564,7 @@ class Sim(SimServer):
                 if max(abs(obj_loc[:2]-middle[:2]))<1 and max(abs(obj_loc[2:]-middle[2:]))<2:
                     break
                 self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
-                if return_action:
-                    yield [*vector,0,0,0]
-                    
-    def graspTargetObj(self,obj_id,handSide='Right',gap=0.3,angle=None,lift_h=20,return_action=False,keep_rpy=(10,0,0)):
-        assert  handSide in ['Right','Left']
-        method='absolute'
-        self.release(handSide=handSide)
-        if return_action:
-            for action in self.closeTargetObj(obj_id,handSide,gap,return_action=return_action,keep_rpy=keep_rpy):
-                yield action
-        else:
-            self.closeTargetObj(obj_id,handSide,gap,return_action=return_action,keep_rpy=keep_rpy)
-        self.grasp(handSide=handSide,angle=angle)
-        if return_action:
-            yield [0]*6+[self.grasp_state[handSide]]
-        time.sleep(0.3)
-        if return_action:
-            for action in self.moveHandReturnAction(0,0,lift_h,handSide=handSide,gap=gap,method='diff'):
-                yield action
-        else:
-            self.moveHand(0,0,lift_h,handSide,gap=gap,method='diff')
-        time.sleep(0.3)
-    
-    def moveTargetObjFront(self,obj_id,handSide='Right',gap=0.3,distance=10):
-        assert  handSide in ['Right','Left']
-        method='absolute'
-        self.closeTargetObj(obj_id,handSide,gap)
-        self.moveHand(-distance,0,0,handSide=handSide)
-
-    def moveTargetObjLeft(self,obj_id,handSide='Right',gap=0.3,distance=10):
-        assert  handSide in ['Right']
-        method='absolute'
-        self.closeTargetObj(obj_id,handSide,gap)
-        self.moveHand(0,distance,0,handSide=handSide)
-
-    def moveTargetObjRight(self,obj_id,handSide='Left',gap=0.3,distance=10):
-        assert  handSide in ['Left']
-        method='absolute'
-        self.closeTargetObj(obj_id,handSide,gap)
-        self.moveHand(0,-distance,0,handSide=handSide)
-
-    def changeObjJoint(self):
-        pass
-        sim.sim_client.SetObjectJointAngle(GrabSim_pb2.ObjectJointCtrl(scene=sim.scene_id,objectId=1,jointName='joint_door',angle=50))
+                yield [*vector,0,0,0]
 
     def set_world_rpy(self,world_rpy_value,handSide='Right'):
         world_rpy = euler_from_quaternion(self.getSensorsData(handSide=handSide)[1])
@@ -638,6 +604,7 @@ class Sim(SimServer):
 
     def reset(self,deskID=None,h=None,n_objs=1,obj_id=None):
         self.resetWorld()
+        self.registry_objs = [None]*len(self.getObjsInfo())
         self.removeObjects(ids='all')
         time.sleep(0.5)
         sensor_data=self.getSensorsData('All')
@@ -646,6 +613,8 @@ class Sim(SimServer):
         self.bow_head()
         time.sleep(1)
 
+        self.desk_height = None
+        
         # # 设置桌子
         # if deskID is None:
         #     deskID = random.choice(self.desks.ID)
@@ -654,7 +623,152 @@ class Sim(SimServer):
         #     self.desk_height = h
         # self.addDesk(deskID,h=h)
 
+class SimAction(Sim):
+    def __init__(self,channel,scene_id):
+        super().__init__(channel,scene_id)
+    
+    def graspTargetObj(self,obj_id,handSide='Right',gap=1,keep_rpy=(0,0,0)):
+        self.release(handSide=handSide)
+        for action in self.closeTargetObj(obj_id=obj_id,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
+            yield [*action,0,0]
+        self.grasp(handSide=handSide)
+        if handSide=='Left':
+            action = [0]*6+[1,0]
+        else:
+            action = [0]*6+[0,1]
+        yield action
+        height = 10
+        if handSide=='Left':
+            action[2] = height/gap
+        else:
+            action[5] = height/gap
+        for action in self.moveHandReturnAction(0,0,height,handSide=handSide,gap=gap):
+            yield action
 
+    def checkGraspTargetObj(self,obj_id,height=5):
+        target_loc=self.getObjsInfo()[obj_id]['location']
+        desk_height = self.desk_height
+        if desk_height+self.registry_objs[obj_id][1]+height<target_loc[-1]:
+            return True
+        else:
+            return False
+    
+    def placeTargetObj(self,obj_id,handSide='Right',gap=1,keep_rpy=(0,0,0)):
+        if handSide=='Right':
+            obj_loc=np.array(self.findObj(id=obj_id)['location'])
+            obj_loc[2] = self.desk_height+self.registry_objs[obj_id][1]+3
+            for i in range(100):
+                sensor = self.getSensorsData(handSide='All',type='full')
+                middle = np.array(sensor[-10]['data'])
+                p = max(abs(obj_loc-middle))/gap if max(abs(obj_loc-middle))>gap else 1
+                vector = (obj_loc-middle)/p
+                if max(abs(obj_loc[:2]-middle[:2]))<1 and max(abs(obj_loc[2:]-middle[2:]))<2:
+                    break
+                self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
+                yield [0,0,0,*vector,self.grasp_state['Left'],self.grasp_state['Right']]
+        elif handSide=='Left':
+            obj_loc=np.array(self.findObj(id=obj_id)['location'])
+            obj_loc[2] = self.desk_height+self.registry_objs[obj_id][1]+3
+            for i in range(100):
+                sensor = self.getSensorsData(handSide='All',type='full')
+                middle = np.array(sensor[-24]['data'])
+                p = max(abs(obj_loc-middle))/gap if max(abs(obj_loc-middle))>gap else 1
+                vector = (obj_loc-middle)/p
+                if max(abs(obj_loc[:2]-middle[:2]))<1 and max(abs(obj_loc[2:]-middle[2:]))<2:
+                    break
+                self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
+                yield [*vector,0,0,0,self.grasp_state['Left'],self.grasp_state['Right']]
+        self.release(handSide=handSide)
+        yield [0]*6+[self.grasp_state['Left'],self.grasp_state['Right']]
+
+    def checkPlaceTargetObj(self,obj_id):
+        target_loc=self.getObjsInfo()[obj_id]['location']
+        desk_height = self.desk_height
+        if abs(desk_height+self.registry_objs[obj_id][1]-target_loc[-1])<=2:
+            return True
+        else:
+            return False
+        
+    def moveNear(self,obj1_id,obj2_id,distance=10,handSide='Right',gap=1,keep_rpy=(0,0,0)):
+        for action in self.graspTargetObj(obj_id=obj1_id,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
+            yield action
+        if not self.checkGraspTargetObj(obj_id=obj1_id):
+            return
+        obj1_loc = np.array(self.getObjsInfo()[obj1_id]['location'])
+        obj2_loc = np.array(self.getObjsInfo()[obj2_id]['location'])
+
+        # 计算需要靠近的位置
+        vector = obj2_loc - obj1_loc
+        unit_vector = vector / np.linalg.norm(vector)
+        new_position = obj2_loc - unit_vector * distance
+        for action in self.moveHandReturnAction(*(new_position-obj1_loc),handSide=handSide,gap=gap):
+            yield action
+    
+    def checkMoveNear(self,obj1_id,obj2_id,distance=11):
+        obj1_loc = np.array(self.getObjsInfo()[obj1_id]['location'])
+        obj2_loc = np.array(self.getObjsInfo()[obj2_id]['location'])
+        dis = np.linalg.norm(obj2_loc-obj1_loc)
+        if dis<distance:
+            return True
+        return False
+    
+    def knockOver(self,obj_id,handSide='Right',gap=1,keep_rpy=(0,0,0)):
+        for action in self.closeTargetObj(obj_id,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
+            yield action
+        if handSide=='Left':
+            diff = (0,-10,5)
+        else:
+            diff = (0,10,5)
+        for action in self.moveHandReturnAction(*diff,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
+            yield action
+
+    def checkKnockOver(self,obj_id):
+        obj_loc=np.array(self.findObj(id=obj_id)['location'])
+        if self.desk_height+self.registry_objs[obj_id][1]/2>obj_loc[-1]:
+            return True
+        return False
+    
+    def pushFront(self,obj_id,distance=10,handSide='Right',gap=1,keep_rpy=(0,0,0)):
+        for action in self.closeTargetObj(obj_id,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
+            yield action
+        for action in self.moveHandReturnAction(-distance,0,-2,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
+            yield action
+    
+    def checkPushFront(self,obj_id,distance=5):
+        initLoc = self.registry_objs[obj_id][0]
+        nowLoc = self.getObjsInfo()[obj_id]['location']
+        if nowLoc[0]-initLoc[0]<-distance:
+            return True
+        return False
+    
+    def pushLeft(self,obj_id,distance=10,handSide='Right',gap=1,keep_rpy=(0,0,0)):
+        assert handSide=='Right'
+        for action in self.closeTargetObj(obj_id,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
+            yield action
+        for action in self.moveHandReturnAction(0,distance,-2,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
+            yield action
+
+    def checkPushLeft(self,obj_id,distance=5):
+        initLoc = self.registry_objs[obj_id][0]
+        nowLoc = self.getObjsInfo()[obj_id]['location']
+        if nowLoc[1]-initLoc[1]>distance:
+            return True
+        return False
+    
+    def pushRight(self,obj_id,distance=10,handSide='Left',gap=1,keep_rpy=(0,0,0)):
+        assert handSide=='Left'
+        for action in self.closeTargetObj(obj_id,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
+            yield action
+        for action in self.moveHandReturnAction(0,-distance,-2,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
+            yield action
+
+    def checkPushRight(self,obj_id,distance=5):
+        initLoc = self.registry_objs[obj_id][0]
+        nowLoc = self.getObjsInfo()[obj_id]['location']
+        if nowLoc[1]-initLoc[1]<-distance:
+            return True
+        return False
+    
 def generate_points_in_square(num_points,target_range, obj_range, target_loc=None, min_distance=15,retry_times=20):
     points = []
     range_x = obj_range[0]

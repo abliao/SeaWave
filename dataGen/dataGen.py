@@ -102,7 +102,7 @@ for epoch in range(1):
         objs = sim.getObjsInfo()
         scene = sim.removeObjects([0])
         desk_height = 98 # 固定桌子高度
-        desk_id = 1
+        desk_id = random.choice(sim.desks.ID.values)
         sim.addDesk(desk_id, h=desk_height)
         obj_id = random.choice(can_list)
         other_obj_ids = random.choices([x for x in sim.objs.ID.values if x != obj_id], k=n_objs - 1)
