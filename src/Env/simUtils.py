@@ -530,6 +530,7 @@ class Sim(SimServer):
             obj_loc[1]-=2-1
             # obj_loc[2]-=1
             obj_loc[2] = self.desk_height+5.5
+            gap=0.3
             for i in range(20):
                 sensor = self.getSensorsData(handSide='All',type='full')
                 middle = np.array(sensor[-10]['data'])
@@ -559,6 +560,7 @@ class Sim(SimServer):
             obj_loc[1]+=4
             # obj_loc[2] -= 1
             obj_loc[2] = self.desk_height+5.5
+            gap=0.3
             for i in range(20):
                 sensor = self.getSensorsData(handSide='All',type='full')
                 middle = np.array(sensor[-24]['data'])
@@ -705,6 +707,7 @@ class SimAction(Sim):
         vector = obj2_loc - obj1_loc
         unit_vector = vector / np.linalg.norm(vector)
         new_position = obj2_loc - unit_vector * distance
+        gap=0.5
         for action in self.moveHandReturnAction(*(new_position-obj1_loc),handSide=handSide,gap=gap):
             yield action
     
@@ -732,41 +735,44 @@ class SimAction(Sim):
             return True
         return False
     
-    def pushFront(self,obj_id,distance=10,handSide='Right',gap=1,keep_rpy=(0,0,0)):
+    def pushFront(self,obj_id,distance=5,handSide='Right',gap=1,keep_rpy=(0,0,0)):
         for action in self.closeTargetObj(obj_id,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
             yield action
+        gap=0.2
         for action in self.moveHandReturnAction(-distance,0,0,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
             yield action
     
-    def checkPushFront(self,obj_id,distance=5):
+    def checkPushFront(self,obj_id,distance=3):
         initLoc = self.registry_objs[obj_id][0]
         nowLoc = self.getObjsInfo()[obj_id]['location']
         if nowLoc[0]-initLoc[0]<-distance:
             return True
         return False
     
-    def pushLeft(self,obj_id,distance=10,handSide='Right',gap=1,keep_rpy=(0,0,0)):
+    def pushLeft(self,obj_id,distance=5,handSide='Right',gap=1,keep_rpy=(0,0,0)):
         assert handSide=='Right'
         for action in self.closeTargetObj(obj_id,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
             yield action
+        gap=0.2
         for action in self.moveHandReturnAction(0,distance,0,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
             yield action
 
-    def checkPushLeft(self,obj_id,distance=5):
+    def checkPushLeft(self,obj_id,distance=3):
         initLoc = self.registry_objs[obj_id][0]
         nowLoc = self.getObjsInfo()[obj_id]['location']
         if nowLoc[1]-initLoc[1]>distance:
             return True
         return False
     
-    def pushRight(self,obj_id,distance=10,handSide='Left',gap=1,keep_rpy=(0,0,0)):
+    def pushRight(self,obj_id,distance=5,handSide='Left',gap=1,keep_rpy=(0,0,0)):
         assert handSide=='Left'
         for action in self.closeTargetObj(obj_id,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
             yield action
+        gap=0.2
         for action in self.moveHandReturnAction(0,-distance,0,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
             yield action
 
-    def checkPushRight(self,obj_id,distance=5):
+    def checkPushRight(self,obj_id,distance=3):
         initLoc = self.registry_objs[obj_id][0]
         nowLoc = self.getObjsInfo()[obj_id]['location']
         if nowLoc[1]-initLoc[1]<-distance:

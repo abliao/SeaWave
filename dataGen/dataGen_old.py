@@ -19,7 +19,7 @@ scene_num = 1
 map_id = 2
 server = SimServer(host, scene_num=scene_num, map_id=map_id)
 
-sim = SimAction(host, scene_id=0)
+sim = Sim(host, scene_id=0)
 
 import pickle
 
@@ -100,6 +100,7 @@ for epoch in range(1):
         time.sleep(1)
         sim.removeObjects('all')
         objs = sim.getObjsInfo()
+        scene = sim.removeObjects([0])
         desk_height = 98 # 固定桌子高度
         desk_id = random.choice(sim.desks.ID.values)
         sim.addDesk(desk_id, h=desk_height)
@@ -130,21 +131,56 @@ for epoch in range(1):
         last_action = (ox-sx, oy-sy, oz)
         last_img = Resize(sim.getImage())
         last_state = sim.getState()
-        # do_values = []
-        for action in sim.graspTargetObj(obj_id=1,handSide=handSide):
-            # values = sim.bow_head()
-            # do_values.append(values)
+        do_values = []
+        for action in sim.closeTargetObj(obj_id=1,handSide=handSide,return_action=True):
+            values = sim.bow_head()
+            do_values.append(values)
             each_frame = {}
             each_frame['img'] = last_img
             each_frame['state'] = last_state
-            each_frame['action'] = action
+            each_frame['action'] = (*action, 0)
             time.sleep(0.05)
             last_img = Resize(sim.getImage())
             last_state = sim.getState()
             each_frame['after_state'] = last_state
             offline_data['trajectory'].append(each_frame)
 
-        if sim.checkGraspTargetObj(obj_id=1):
+        loc1 = sim.findObj(name=target_obj)['location']
+        loc2 = sim.getSensorsData(handSide=handSide)[0]
+
+        # 抓取
+        each_frame = {}
+        mat = sim.getImage()
+        mat = Resize(mat)
+        each_frame['img'] = mat
+        each_frame['state'] = sim.getState()
+        before_grasp_img = sim.getImage()
+        sim.grasp(handSide=handSide)
+        grasp_img = sim.getImage()
+        each_frame['action'] = (0, 0, 0, 0, 0, 0, 1)
+        each_frame['after_state'] = sim.getState()
+        offline_data['trajectory'].append(each_frame)
+
+        last_img = sim.getImage()
+        last_state = sim.getState()
+        for action in sim.moveHandReturnAction(0, 0, 10, gap=1, method='diff',handSide=handSide):
+            # values = sim.bow_head()
+            # do_values.append(values)
+            each_frame = {}
+            each_frame['img'] = Resize(last_img)
+            each_frame['state'] = last_state
+            if handSide=='Right':
+                each_frame['action'] = (0, 0, 0, 0, 0, 1, 1)
+            else:
+                each_frame['action'] = (0, 0, 1, 0, 0, 0, 1)
+            state = sim.getState()
+            each_frame['after_state'] = state
+            offline_data['trajectory'].append(each_frame)
+            last_img = sim.getImage()
+            last_state = state
+
+        target_now_loc = sim.getObjsInfo()[1]['location']
+        if target_now_loc[2] - target_origin_loc[2] > 10:
             collected_num += 1
             is_success = True
             print(f'Success have collected {collected_num} datas')
@@ -156,6 +192,10 @@ for epoch in range(1):
 
         im = sim.getImage()
         plt.imshow(im)
+        plt.savefig(log_images_path + f"/{index:04d}_{is_success}_{target_obj}.png", format='png')
+        plt.imshow(grasp_img)
+        plt.savefig(grasp_images_path + f"/{index:04d}_{is_success}_{target_obj}.png", format='png')
+        plt.imshow(before_grasp_img)
         plt.savefig(before_grasp_images_path + f"/{index:04d}_{is_success}_{target_obj}.png", format='png')
         # do_values = np.array(do_values)
         # np.save(log_images_path + f"/{index:04d}_{is_success}_{target_obj}.pkl", do_values)
