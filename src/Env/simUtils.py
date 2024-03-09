@@ -779,6 +779,26 @@ class SimAction(Sim):
             return True
         return False
     
+    def closeDoor(self,obj_id,handSide='Left',gap=1,keep_rpy=(0,0,0)):
+        assert handSide=='Left'
+        diagonal=self.getObservation().objects[obj_id].boxes[1].diagonals[1]
+        a,b=[diagonal.X0,diagonal.Y0,diagonal.Z0],[diagonal.X1,diagonal.Y1,diagonal.Z1]
+        a=np.array(a)
+        b=np.array(b)
+        a=(a+b)/2
+        a[1]+=15
+        a[0]+=18
+        for action in self.moveHandReturnAction(*a,method='absolute',handSide=handSide,keep_rpy=keep_rpy,gap=gap):
+            yield action
+        for action in self.moveHandReturnAction(0,-20,4,handSide=handSide,keep_rpy=keep_rpy,gap=gap):
+            yield action
+
+    def checkCloseDoor(self,obj_id):
+        rotation = self.getObjsInfo()[obj_id]['rotation'][-1]
+        if rotation>-70:
+            return True
+        return False
+    
 def generate_points_in_square(num_points,target_range, obj_range, target_loc=None, min_distance=15,retry_times=20):
     points = []
     range_x = obj_range[0]

@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='GrabSim',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\rGrabSim.proto\x12\x07GrabSim\"\x19\n\x08TypeList\x12\r\n\x05types\x18\x01 \x03(\t\"u\n\rAvailableMaps\x12,\n\x04maps\x18\x01 \x03(\x0b\x32\x1e.GrabSim.AvailableMaps.MapInfo\x1a\x36\n\x07MapInfo\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05width\x18\x02 \x01(\x02\x12\x0e\n\x06height\x18\x03 \x01(\x02\"\x1d\n\x0bWalkerNames\x12\x0e\n\x06walker\x18\x01 \x03(\t\"(\n\x08\x42\x61tchMap\x12\r\n\x05\x63ount\x18\x01 \x01(\x05\x12\r\n\x05mapID\x18\x02 \x01(\x05\"a\n\x07MapList\x12&\n\x04maps\x18\x01 \x03(\x0b\x32\x18.GrabSim.MapList.MapInfo\x1a.\n\x07MapInfo\x12\r\n\x05mapID\x18\x01 \x01(\x05\x12\t\n\x01X\x18\x02 \x01(\x02\x12\t\n\x01Y\x18\x03 \x01(\x02\"\x18\n\x07SceneID\x12\r\n\x05value\x18\x01 \x01(\x05\"+\n\x08Location\x12\t\n\x01X\x18\x01 \x01(\x02\x12\t\n\x01Y\x18\x02 \x01(\x02\x12\t\n\x01Z\x18\x03 \x01(\x02\"4\n\x08Rotation\x12\x0c\n\x04Roll\x18\x01 \x01(\x02\x12\r\n\x05Pitch\x18\x02 \x01(\x02\x12\x0b\n\x03Yaw\x18\x03 \x01(\x02\"(\n\x05Scale\x12\t\n\x01X\x18\x01 \x01(\x02\x12\t\n\x01Y\x18\x02 \x01(\x02\x12\t\n\x01Z\x18\x03 \x01(\x02\")\n\x04Pose\x12\t\n\x01X\x18\x01 \x01(\x02\x12\t\n\x01Y\x18\x02 \x01(\x02\x12\x0b\n\x03Yaw\x18\x03 \x01(\x02\"9\n\x08KeyPoint\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\t\n\x01X\x18\x02 \x01(\x02\x12\t\n\x01Y\x18\x03 \x01(\x02\x12\t\n\x01Z\x18\x04 \x01(\x02\"7\n\x05World\x12\x1e\n\x06scenes\x18\x01 \x03(\x0b\x32\x0e.GrabSim.Scene\x12\x0e\n\x04info\x18\x80\x80\x04 \x01(\t\"\xab\x08\n\x05Scene\x12\r\n\x05scene\x18\x01 \x01(\x05\x12#\n\x08location\x18\x02 \x01(\x0b\x32\x11.GrabSim.Location\x12#\n\x08rotation\x18\x03 \x01(\x0b\x32\x11.GrabSim.Rotation\x12$\n\x06joints\x18\x04 \x03(\x0b\x32\x14.GrabSim.Scene.Joint\x12&\n\x07\x66ingers\x18\x05 \x03(\x0b\x32\x15.GrabSim.Scene.Finger\x12&\n\x07objects\x18  \x03(\x0b\x32\x15.GrabSim.Scene.Object\x12&\n\x07walkers\x18! \x03(\x0b\x32\x15.GrabSim.Scene.Walker\x12\x11\n\x08timestep\x18\x80\x02 \x01(\x05\x12\x12\n\ttimestamp\x18\x80\x04 \x01(\x03\x12\x13\n\tcollision\x18\x80\x80\x02 \x01(\t\x12\x0e\n\x04info\x18\x80\x80\x04 \x01(\t\x1aI\n\x05Joint\x12\x0c\n\x04name\x18\x01 \x01(\t\x12#\n\x08location\x18\x02 \x01(\x0b\x32\x11.GrabSim.Location\x12\r\n\x05\x61ngle\x18\x03 \x01(\x02\x1aJ\n\x06\x46inger\x12\x0c\n\x04name\x18\x01 \x01(\t\x12#\n\x08location\x18\x02 \x03(\x0b\x32\x11.GrabSim.Location\x12\r\n\x05\x61ngle\x18\x03 \x01(\x02\x1a\xd2\x03\n\x06Object\x12\x0c\n\x04name\x18\x01 \x01(\t\x12#\n\x08location\x18\x02 \x01(\x0b\x32\x11.GrabSim.Location\x12#\n\x08rotation\x18\x03 \x01(\x0b\x32\x11.GrabSim.Rotation\x12\x1d\n\x05scale\x18\x04 \x01(\x0b\x32\x0e.GrabSim.Scale\x12$\n\tkeypoints\x18\x05 \x03(\x0b\x32\x11.GrabSim.KeyPoint\x12(\n\x05\x62oxes\x18\x06 \x03(\x0b\x32\x19.GrabSim.Scene.Object.Box\x12+\n\x06joints\x18\x07 \x03(\x0b\x32\x1b.GrabSim.Scene.Object.Joint\x1a\x33\n\x05Joint\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05lower\x18\x02 \x01(\x02\x12\r\n\x05upper\x18\x03 \x01(\x02\x1a\x9e\x01\n\x03\x42ox\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x35\n\tdiagonals\x18\x02 \x03(\x0b\x32\".GrabSim.Scene.Object.Box.Diagonal\x1aR\n\x08\x44iagonal\x12\n\n\x02X0\x18\x01 \x01(\x02\x12\n\n\x02Y0\x18\x02 \x01(\x02\x12\n\n\x02Z0\x18\x03 \x01(\x02\x12\n\n\x02X1\x18\x04 \x01(\x02\x12\n\n\x02Y1\x18\x05 \x01(\x02\x12\n\n\x02Z1\x18\x06 \x01(\x02\x1as\n\x06Walker\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x1b\n\x04pose\x18\x02 \x01(\x0b\x32\r.GrabSim.Pose\x12\r\n\x05speed\x18\x03 \x01(\x02\x12\x10\n\x08\x61utowalk\x18\x04 \x01(\x08\x12\x1d\n\x06target\x18\x05 \x01(\x0b\x32\r.GrabSim.Pose\"\xbd\x01\n\x06\x41\x63tion\x12\r\n\x05scene\x18\x01 \x01(\x05\x12*\n\x06\x61\x63tion\x18\x02 \x01(\x0e\x32\x1a.GrabSim.Action.ActionType\x12\x0e\n\x06values\x18\x03 \x03(\x02\"h\n\nActionType\x12\x10\n\x0cRotateJoints\x10\x00\x12\n\n\x06WalkTo\x10\x03\x12\t\n\x05Grasp\x10\x04\x12\x0b\n\x07Release\x10\x05\x12\n\n\x06Moving\x10\x06\x12\n\n\x06\x46inger\x10\x07\x12\x0c\n\x08MoveHand\x10\x08\"\x05\n\x03NUL\"[\n\x0bResetParams\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x0e\n\x06\x61\x64just\x18\x02 \x01(\x08\x12\x0e\n\x06height\x18\x03 \x01(\x02\x12\r\n\x05width\x18\x04 \x01(\x02\x12\x0e\n\x06values\x18\x05 \x03(\x02\"\xd0\x01\n\nObjectList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12+\n\x07objects\x18\x02 \x03(\x0b\x32\x1a.GrabSim.ObjectList.Object\x1a\x85\x01\n\x06Object\x12\x0c\n\x04type\x18\x01 \x01(\x05\x12\t\n\x01x\x18\x02 \x01(\x02\x12\t\n\x01y\x18\x03 \x01(\x02\x12\t\n\x01z\x18\x04 \x01(\x02\x12\x0c\n\x04roll\x18\x05 \x01(\x02\x12\r\n\x05pitch\x18\x06 \x01(\x02\x12\x0b\n\x03yaw\x18\x07 \x01(\x02\x12\n\n\x02sx\x18\x08 \x01(\x02\x12\n\n\x02sy\x18\t \x01(\x02\x12\n\n\x02sz\x18\n \x01(\x02\"X\n\x11HandGestureParams\x12\x0f\n\x07sceneID\x18\x01 \x01(\x05\x12\x0f\n\x07handNum\x18\x02 \x01(\x05\x12\x0f\n\x07\x66ruitId\x18\x03 \x01(\t\x12\x10\n\x08handView\x18\x04 \x01(\x08\"(\n\nRemoveList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x0b\n\x03IDs\x18\x02 \x03(\x05\"\xa6\x01\n\nAnchorList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x0e\n\x06\x61ppend\x18\x02 \x01(\x08\x12+\n\x07\x61nchros\x18\x03 \x03(\x0b\x32\x1a.GrabSim.AnchorList.Anchor\x1aL\n\x06\x41nchor\x12#\n\x08location\x18\x01 \x01(\x0b\x32\x11.GrabSim.Location\x12\x1d\n\x05\x63olor\x18\x02 \x01(\x0e\x32\x0e.GrabSim.Color\"A\n\nCameraList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12$\n\x07\x63\x61meras\x18\x02 \x03(\x0e\x32\x13.GrabSim.CameraName\"\xaf\x03\n\nCameraData\x12)\n\x06images\x18\x01 \x03(\x0b\x32\x19.GrabSim.CameraData.Image\x12\x12\n\ttimestamp\x18\x80\x08 \x01(\x03\x12\x0e\n\x04info\x18\x80\x80\x04 \x01(\t\x1a\xd1\x02\n\x05Image\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\r\n\x05\x64type\x18\x03 \x01(\t\x12#\n\x08location\x18\x04 \x01(\x0b\x32\x11.GrabSim.Location\x12#\n\x08rotation\x18\x05 \x01(\x0b\x32\x11.GrabSim.Rotation\x12\r\n\x05width\x18\x06 \x01(\x05\x12\x0e\n\x06height\x18\x07 \x01(\x05\x12\x10\n\x08\x63hannels\x18\x08 \x01(\x05\x12\x0b\n\x03\x66ov\x18\t \x01(\x02\x12\r\n\x05lines\x18\n \x01(\x05\x12\x38\n\nparameters\x18\x0b \x01(\x0b\x32$.GrabSim.CameraData.Image.Parameters\x1aL\n\nParameters\x12\n\n\x02\x66x\x18\x01 \x01(\x02\x12\n\n\x02\x66y\x18\x02 \x01(\x02\x12\n\n\x02\x63x\x18\x03 \x01(\x02\x12\n\n\x02\x63y\x18\x04 \x01(\x02\x12\x0e\n\x06matrix\x18\x05 \x03(\x02\"L\n\x0bLidarParams\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x0b\n\x03\x46OV\x18\x02 \x01(\x02\x12\r\n\x05lines\x18\x03 \x01(\x05\x12\x12\n\nresolution\x18\x04 \x01(\x02\"\xc4\x01\n\nHandTarget\x12\r\n\x05scene\x18\x01 \x01(\x05\x12(\n\x04left\x18\x02 \x01(\x0b\x32\x1a.GrabSim.HandTarget.Target\x12)\n\x05right\x18\x03 \x01(\x0b\x32\x1a.GrabSim.HandTarget.Target\x1aR\n\x06Target\x12#\n\x08location\x18\x01 \x01(\x0b\x32\x11.GrabSim.Location\x12#\n\x08rotation\x18\x02 \x01(\x0b\x32\x11.GrabSim.Rotation\"\x85\x01\n\x0b\x41rmSequence\x12,\n\x04left\x18\x01 \x03(\x0b\x32\x1e.GrabSim.ArmSequence.ArmAngles\x12-\n\x05right\x18\x02 \x03(\x0b\x32\x1e.GrabSim.ArmSequence.ArmAngles\x1a\x19\n\tArmAngles\x12\x0c\n\x04\x64\x61ta\x18\x01 \x03(\x02\"\xbf\x02\n\x0cObstacleList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x32\n\x07objects\x18\x02 \x03(\x0b\x32!.GrabSim.ObstacleList.BasicObject\x1a\xeb\x01\n\x0b\x42\x61sicObject\x12\x39\n\x04name\x18\x01 \x01(\x0e\x32+.GrabSim.ObstacleList.BasicObject.ShapeName\x12\x0e\n\x06length\x18\x02 \x01(\x02\x12\r\n\x05width\x18\x03 \x01(\x02\x12\x0e\n\x06height\x18\x04 \x01(\x02\x12\x0e\n\x06radius\x18\x05 \x01(\x02\x12\t\n\x01x\x18\x06 \x01(\x02\x12\t\n\x01y\x18\x07 \x01(\x02\x12\x11\n\tdirection\x18\x08 \x01(\x02\"9\n\tShapeName\x12\x08\n\x04\x43ube\x10\x00\x12\n\n\x06Sphere\x10\x01\x12\x0c\n\x08\x43ylinder\x10\x02\x12\x08\n\x04\x43one\x10\x03\"\x9a\x01\n\x0cMovementList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x36\n\tmovements\x18\x02 \x03(\x0b\x32#.GrabSim.MovementList.BasicMovement\x1a\x43\n\rBasicMovement\x12\x10\n\x08objectID\x18\x01 \x01(\x05\x12\r\n\x05speed\x18\x02 \x01(\x02\x12\x11\n\tdirection\x18\x03 \x01(\x02\"R\n\nActionList\x12 \n\x07\x61\x63tions\x18\x01 \x03(\x0b\x32\x0f.GrabSim.Action\x12\x10\n\x08timestep\x18\x02 \x01(\x05\x12\x10\n\x08\x46inished\x18\x03 \x01(\x08\"{\n\nWalkerList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12+\n\x07walkers\x18\x02 \x03(\x0b\x32\x1a.GrabSim.WalkerList.Walker\x1a\x31\n\x06Walker\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x1b\n\x04pose\x18\x02 \x01(\x0b\x32\r.GrabSim.Pose\"\xa9\x01\n\x0eWalkerControls\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x32\n\x08\x63ontrols\x18\x02 \x03(\x0b\x32 .GrabSim.WalkerControls.WControl\x1aT\n\x08WControl\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x10\n\x08\x61utowalk\x18\x02 \x01(\x08\x12\r\n\x05speed\x18\x03 \x01(\x02\x12\x1b\n\x04pose\x18\x04 \x01(\x0b\x32\r.GrabSim.Pose\"K\n\x0b\x43ontrolInfo\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x0c\n\x04type\x18\x02 \x01(\x05\x12\x0e\n\x06\x61\x63tion\x18\x03 \x01(\x05\x12\x0f\n\x07\x63ontent\x18\x04 \x01(\t\"\x88\x01\n\x0c\x41\x63tuatorList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x31\n\tactuators\x18\x02 \x03(\x0b\x32\x1e.GrabSim.ActuatorList.Actuator\x1a\x36\n\x08\x41\x63tuator\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05lower\x18\x02 \x01(\x02\x12\r\n\x05upper\x18\x03 \x01(\x02\"n\n\nSensorList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12+\n\x07sensors\x18\x02 \x03(\x0b\x32\x1a.GrabSim.SensorList.Sensor\x1a$\n\x06Sensor\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x03(\x01\"\x80\x02\n\x10HandPostureInfos\x12\r\n\x05scene\x18\x01 \x01(\x05\x12G\n\x12handPostureObjects\x18\x02 \x03(\x0b\x32+.GrabSim.HandPostureInfos.HandPostureObject\x12\x10\n\x08\x61utoMove\x18\x03 \x01(\x08\x1a\x81\x01\n\x11HandPostureObject\x12\x0f\n\x07handNum\x18\x01 \x01(\x05\x12\t\n\x01x\x18\x02 \x01(\x02\x12\t\n\x01y\x18\x03 \x01(\x02\x12\t\n\x01z\x18\x04 \x01(\x02\x12\x0c\n\x04roll\x18\x05 \x01(\x02\x12\r\n\x05pitch\x18\x06 \x01(\x02\x12\x0b\n\x03yaw\x18\x07 \x01(\x02\x12\x10\n\x08handMove\x18\x08 \x01(\x08\"\xf3\x01\n\x0eIKControlInfos\x12\x41\n\x10IKControlObjects\x18\x01 \x03(\x0b\x32\'.GrabSim.IKControlInfos.IKControlObject\x1a\x9d\x01\n\x0fIKControlObject\x12\x0f\n\x07handNum\x18\x01 \x01(\x05\x12\x10\n\x08\x64istance\x18\x02 \x01(\x02\x12\r\n\x05\x61xis1\x18\x03 \x01(\x02\x12\r\n\x05\x61xis2\x18\x04 \x01(\x02\x12\r\n\x05\x61xis3\x18\x05 \x01(\x02\x12\r\n\x05\x61xis4\x18\x06 \x01(\x02\x12\r\n\x05\x61xis5\x18\x07 \x01(\x02\x12\r\n\x05\x61xis6\x18\x08 \x01(\x02\x12\r\n\x05\x61xis7\x18\t \x01(\x02\".\n\nCameraInfo\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x11\n\tcameraNum\x18\x02 \x01(\x05\"$\n\x12\x43hangeCameraResult\x12\x0e\n\x06result\x18\x01 \x01(\t\"\x1b\n\nFloatValue\x12\r\n\x05value\x18\x01 \x01(\x02\"X\n\x12\x45nableEndPointCtrl\x12\r\n\x05scene\x18\x01 \x01(\x05\x12#\n\x08handSide\x18\x02 \x01(\x0e\x32\x11.GrabSim.HandSide\x12\x0e\n\x06\x65nable\x18\x03 \x01(\x08\"\x91\x01\n\x10\x45ndPointPosition\x12\r\n\x05scene\x18\x01 \x01(\x05\x12#\n\x08handSide\x18\x02 \x01(\x0e\x32\x11.GrabSim.HandSide\x12\t\n\x01x\x18\x03 \x01(\x02\x12\t\n\x01y\x18\x04 \x01(\x02\x12\t\n\x01z\x18\x05 \x01(\x02\x12\x0c\n\x04roll\x18\x06 \x01(\x02\x12\r\n\x05pitch\x18\x07 \x01(\x02\x12\x0b\n\x03yaw\x18\x08 \x01(\x02\"T\n\x0fObjectJointCtrl\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x10\n\x08objectId\x18\x02 \x01(\x05\x12\x11\n\tjointName\x18\x03 \x01(\t\x12\r\n\x05\x61ngle\x18\x04 \x01(\x02*]\n\x05\x43olor\x12\t\n\x05\x42lack\x10\x00\x12\x08\n\x04\x42lue\x10\x01\x12\t\n\x05Green\x10\x02\x12\x08\n\x04\x41qua\x10\x03\x12\x07\n\x03Red\x10\x04\x12\n\n\x06Purple\x10\x05\x12\n\n\x06Yellow\x10\x06\x12\t\n\x05White\x10\x07*\xd3\x02\n\nCameraName\x12\r\n\t_UNKNOWN_\x10\x00\x12\x0f\n\nFoot_Lidar\x10\x83\x02\x12\x0f\n\nWaist_RGBD\x10\x80\x04\x12\x10\n\x0bWaist_Color\x10\x81\x04\x12\x10\n\x0bWaist_Depth\x10\x82\x04\x12\x0f\n\nChest_RGBD\x10\x80\x06\x12\x10\n\x0b\x43hest_Color\x10\x81\x06\x12\x10\n\x0b\x43hest_Depth\x10\x82\x06\x12\x0e\n\tHead_RGBD\x10\x80\x08\x12\x0f\n\nHead_Color\x10\x81\x08\x12\x0f\n\nHead_Depth\x10\x82\x08\x12\x11\n\x0cHead_Segment\x10\x83\x08\x12\r\n\x08\x43\x31_Color\x10\x81\"\x12\r\n\x08\x43\x31_Depth\x10\x82\"\x12\r\n\x08\x43\x32_Color\x10\x81$\x12\r\n\x08\x43\x32_Depth\x10\x82$\x12\r\n\x08\x43\x33_Color\x10\x81&\x12\r\n\x08\x43\x33_Depth\x10\x82&\x12\r\n\x08\x43\x34_Color\x10\x81(\x12\r\n\x08\x43\x34_Depth\x10\x82(*\x1f\n\x08HandSide\x12\x08\n\x04Left\x10\x00\x12\t\n\x05Right\x10\x01\x32\xae\x0f\n\x07GrabSim\x12\x31\n\x0c\x41\x63quireTypes\x12\x0c.GrabSim.NUL\x1a\x11.GrabSim.TypeList\"\x00\x12>\n\x14\x41\x63quireAvailableMaps\x12\x0c.GrabSim.NUL\x1a\x16.GrabSim.AvailableMaps\"\x00\x12\x36\n\x0e\x41\x63quireWalkers\x12\x0c.GrabSim.NUL\x1a\x14.GrabSim.WalkerNames\"\x00\x12$\n\x04Init\x12\x0c.GrabSim.NUL\x1a\x0c.GrabSim.NUL\"\x00\x12/\n\x08SetWorld\x12\x11.GrabSim.BatchMap\x1a\x0e.GrabSim.World\"\x00\x12-\n\x07\x41\x64\x64Maps\x12\x10.GrabSim.MapList\x1a\x0e.GrabSim.World\"\x00\x12,\n\nObserveAll\x12\x0c.GrabSim.NUL\x1a\x0e.GrabSim.World\"\x00\x12/\n\x05Reset\x12\x14.GrabSim.ResetParams\x1a\x0e.GrabSim.Scene\"\x00\x12\x34\n\x0bMakeObjects\x12\x13.GrabSim.ObjectList\x1a\x0e.GrabSim.Scene\"\x00\x12>\n\x0eGetHandGesture\x12\x1a.GrabSim.HandGestureParams\x1a\x0e.GrabSim.Scene\"\x00\x12\x33\n\nAddObjects\x12\x13.GrabSim.ObjectList\x1a\x0e.GrabSim.Scene\"\x00\x12\x36\n\rRemoveObjects\x12\x13.GrabSim.RemoveList\x1a\x0e.GrabSim.Scene\"\x00\x12\x32\n\x0c\x43leanObjects\x12\x10.GrabSim.SceneID\x1a\x0e.GrabSim.Scene\"\x00\x12\x33\n\nAddAnchors\x12\x13.GrabSim.AnchorList\x1a\x0e.GrabSim.Scene\"\x00\x12-\n\x07Observe\x12\x10.GrabSim.SceneID\x1a\x0e.GrabSim.Scene\"\x00\x12\'\n\x02\x44o\x12\x0f.GrabSim.Action\x1a\x0e.GrabSim.Scene\"\x00\x12\x38\n\x08SetLidar\x12\x14.GrabSim.LidarParams\x1a\x14.GrabSim.LidarParams\"\x00\x12\x37\n\x08MoveHand\x12\x13.GrabSim.HandTarget\x1a\x14.GrabSim.ArmSequence\"\x00\x12\x35\n\x07\x43\x61pture\x12\x13.GrabSim.CameraList\x1a\x13.GrabSim.CameraData\"\x00\x12\x37\n\x0c\x41\x64\x64Obstacles\x12\x15.GrabSim.ObstacleList\x1a\x0e.GrabSim.Scene\"\x00\x12\x36\n\x0bSetMovement\x12\x15.GrabSim.MovementList\x1a\x0e.GrabSim.Scene\"\x00\x12\x32\n\tGetAction\x12\x0e.GrabSim.Scene\x1a\x13.GrabSim.ActionList\"\x00\x12\x32\n\tAddWalker\x12\x13.GrabSim.WalkerList\x1a\x0e.GrabSim.Scene\"\x00\x12;\n\x0e\x43ontrolWalkers\x12\x17.GrabSim.WalkerControls\x1a\x0e.GrabSim.Scene\"\x00\x12\x36\n\rRemoveWalkers\x12\x13.GrabSim.RemoveList\x1a\x0e.GrabSim.Scene\"\x00\x12\x32\n\x0c\x43leanWalkers\x12\x10.GrabSim.SceneID\x1a\x0e.GrabSim.Scene\"\x00\x12\x36\n\x0c\x43ontrolRobot\x12\x14.GrabSim.ControlInfo\x1a\x0e.GrabSim.Scene\"\x00\x12>\n\x11GetActuatorRanges\x12\x10.GrabSim.SceneID\x1a\x15.GrabSim.ActuatorList\"\x00\x12\x39\n\x0eGetSensorDatas\x12\x10.GrabSim.SceneID\x1a\x13.GrabSim.SensorList\"\x00\x12I\n\x11GetIKControlInfos\x12\x19.GrabSim.HandPostureInfos\x1a\x17.GrabSim.IKControlInfos\"\x00\x12\x42\n\x0c\x43hangeCamera\x12\x13.GrabSim.CameraInfo\x1a\x1b.GrabSim.ChangeCameraResult\"\x00\x12\x38\n\x11SetLightIntensity\x12\x13.GrabSim.FloatValue\x1a\x0c.GrabSim.NUL\"\x00\x12\x44\n\x15SetEnableEndPointCtrl\x12\x1b.GrabSim.EnableEndPointCtrl\x1a\x0c.GrabSim.NUL\"\x00\x12@\n\x13SetEndPointPosition\x12\x19.GrabSim.EndPointPosition\x1a\x0c.GrabSim.NUL\"\x00\x12?\n\x13SetObjectJointAngle\x12\x18.GrabSim.ObjectJointCtrl\x1a\x0c.GrabSim.NUL\"\x00\x62\x06proto3')
+  serialized_pb=_b('\n\rGrabSim.proto\x12\x07GrabSim\"\x19\n\x08TypeList\x12\r\n\x05types\x18\x01 \x03(\t\"u\n\rAvailableMaps\x12,\n\x04maps\x18\x01 \x03(\x0b\x32\x1e.GrabSim.AvailableMaps.MapInfo\x1a\x36\n\x07MapInfo\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05width\x18\x02 \x01(\x02\x12\x0e\n\x06height\x18\x03 \x01(\x02\"\x1d\n\x0bWalkerNames\x12\x0e\n\x06walker\x18\x01 \x03(\t\"(\n\x08\x42\x61tchMap\x12\r\n\x05\x63ount\x18\x01 \x01(\x05\x12\r\n\x05mapID\x18\x02 \x01(\x05\"a\n\x07MapList\x12&\n\x04maps\x18\x01 \x03(\x0b\x32\x18.GrabSim.MapList.MapInfo\x1a.\n\x07MapInfo\x12\r\n\x05mapID\x18\x01 \x01(\x05\x12\t\n\x01X\x18\x02 \x01(\x02\x12\t\n\x01Y\x18\x03 \x01(\x02\"\x18\n\x07SceneID\x12\r\n\x05value\x18\x01 \x01(\x05\"+\n\x08Location\x12\t\n\x01X\x18\x01 \x01(\x02\x12\t\n\x01Y\x18\x02 \x01(\x02\x12\t\n\x01Z\x18\x03 \x01(\x02\"4\n\x08Rotation\x12\x0c\n\x04Roll\x18\x01 \x01(\x02\x12\r\n\x05Pitch\x18\x02 \x01(\x02\x12\x0b\n\x03Yaw\x18\x03 \x01(\x02\"(\n\x05Scale\x12\t\n\x01X\x18\x01 \x01(\x02\x12\t\n\x01Y\x18\x02 \x01(\x02\x12\t\n\x01Z\x18\x03 \x01(\x02\")\n\x04Pose\x12\t\n\x01X\x18\x01 \x01(\x02\x12\t\n\x01Y\x18\x02 \x01(\x02\x12\x0b\n\x03Yaw\x18\x03 \x01(\x02\"9\n\x08KeyPoint\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\t\n\x01X\x18\x02 \x01(\x02\x12\t\n\x01Y\x18\x03 \x01(\x02\x12\t\n\x01Z\x18\x04 \x01(\x02\"7\n\x05World\x12\x1e\n\x06scenes\x18\x01 \x03(\x0b\x32\x0e.GrabSim.Scene\x12\x0e\n\x04info\x18\x80\x80\x04 \x01(\t\"\xbc\x08\n\x05Scene\x12\r\n\x05scene\x18\x01 \x01(\x05\x12#\n\x08location\x18\x02 \x01(\x0b\x32\x11.GrabSim.Location\x12#\n\x08rotation\x18\x03 \x01(\x0b\x32\x11.GrabSim.Rotation\x12$\n\x06joints\x18\x04 \x03(\x0b\x32\x14.GrabSim.Scene.Joint\x12&\n\x07\x66ingers\x18\x05 \x03(\x0b\x32\x15.GrabSim.Scene.Finger\x12&\n\x07objects\x18  \x03(\x0b\x32\x15.GrabSim.Scene.Object\x12&\n\x07walkers\x18! \x03(\x0b\x32\x15.GrabSim.Scene.Walker\x12\x11\n\x08timestep\x18\x80\x02 \x01(\x05\x12\x12\n\ttimestamp\x18\x80\x04 \x01(\x03\x12\x13\n\tcollision\x18\x80\x80\x02 \x01(\t\x12\x0e\n\x04info\x18\x80\x80\x04 \x01(\t\x1aI\n\x05Joint\x12\x0c\n\x04name\x18\x01 \x01(\t\x12#\n\x08location\x18\x02 \x01(\x0b\x32\x11.GrabSim.Location\x12\r\n\x05\x61ngle\x18\x03 \x01(\x02\x1aJ\n\x06\x46inger\x12\x0c\n\x04name\x18\x01 \x01(\t\x12#\n\x08location\x18\x02 \x03(\x0b\x32\x11.GrabSim.Location\x12\r\n\x05\x61ngle\x18\x03 \x01(\x02\x1a\xe3\x03\n\x06Object\x12\x0c\n\x04name\x18\x01 \x01(\t\x12#\n\x08location\x18\x02 \x01(\x0b\x32\x11.GrabSim.Location\x12#\n\x08rotation\x18\x03 \x01(\x0b\x32\x11.GrabSim.Rotation\x12\x1d\n\x05scale\x18\x04 \x01(\x0b\x32\x0e.GrabSim.Scale\x12$\n\tkeypoints\x18\x05 \x03(\x0b\x32\x11.GrabSim.KeyPoint\x12(\n\x05\x62oxes\x18\x06 \x03(\x0b\x32\x19.GrabSim.Scene.Object.Box\x12+\n\x06joints\x18\x07 \x03(\x0b\x32\x1b.GrabSim.Scene.Object.Joint\x1a\x44\n\x05Joint\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05lower\x18\x02 \x01(\x02\x12\r\n\x05upper\x18\x03 \x01(\x02\x12\x0f\n\x07\x63urrent\x18\x04 \x01(\x02\x1a\x9e\x01\n\x03\x42ox\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x35\n\tdiagonals\x18\x02 \x03(\x0b\x32\".GrabSim.Scene.Object.Box.Diagonal\x1aR\n\x08\x44iagonal\x12\n\n\x02X0\x18\x01 \x01(\x02\x12\n\n\x02Y0\x18\x02 \x01(\x02\x12\n\n\x02Z0\x18\x03 \x01(\x02\x12\n\n\x02X1\x18\x04 \x01(\x02\x12\n\n\x02Y1\x18\x05 \x01(\x02\x12\n\n\x02Z1\x18\x06 \x01(\x02\x1as\n\x06Walker\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x1b\n\x04pose\x18\x02 \x01(\x0b\x32\r.GrabSim.Pose\x12\r\n\x05speed\x18\x03 \x01(\x02\x12\x10\n\x08\x61utowalk\x18\x04 \x01(\x08\x12\x1d\n\x06target\x18\x05 \x01(\x0b\x32\r.GrabSim.Pose\"\xbd\x01\n\x06\x41\x63tion\x12\r\n\x05scene\x18\x01 \x01(\x05\x12*\n\x06\x61\x63tion\x18\x02 \x01(\x0e\x32\x1a.GrabSim.Action.ActionType\x12\x0e\n\x06values\x18\x03 \x03(\x02\"h\n\nActionType\x12\x10\n\x0cRotateJoints\x10\x00\x12\n\n\x06WalkTo\x10\x03\x12\t\n\x05Grasp\x10\x04\x12\x0b\n\x07Release\x10\x05\x12\n\n\x06Moving\x10\x06\x12\n\n\x06\x46inger\x10\x07\x12\x0c\n\x08MoveHand\x10\x08\"\x05\n\x03NUL\"[\n\x0bResetParams\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x0e\n\x06\x61\x64just\x18\x02 \x01(\x08\x12\x0e\n\x06height\x18\x03 \x01(\x02\x12\r\n\x05width\x18\x04 \x01(\x02\x12\x0e\n\x06values\x18\x05 \x03(\x02\"\xd0\x01\n\nObjectList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12+\n\x07objects\x18\x02 \x03(\x0b\x32\x1a.GrabSim.ObjectList.Object\x1a\x85\x01\n\x06Object\x12\x0c\n\x04type\x18\x01 \x01(\x05\x12\t\n\x01x\x18\x02 \x01(\x02\x12\t\n\x01y\x18\x03 \x01(\x02\x12\t\n\x01z\x18\x04 \x01(\x02\x12\x0c\n\x04roll\x18\x05 \x01(\x02\x12\r\n\x05pitch\x18\x06 \x01(\x02\x12\x0b\n\x03yaw\x18\x07 \x01(\x02\x12\n\n\x02sx\x18\x08 \x01(\x02\x12\n\n\x02sy\x18\t \x01(\x02\x12\n\n\x02sz\x18\n \x01(\x02\"X\n\x11HandGestureParams\x12\x0f\n\x07sceneID\x18\x01 \x01(\x05\x12\x0f\n\x07handNum\x18\x02 \x01(\x05\x12\x0f\n\x07\x66ruitId\x18\x03 \x01(\t\x12\x10\n\x08handView\x18\x04 \x01(\x08\"(\n\nRemoveList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x0b\n\x03IDs\x18\x02 \x03(\x05\"\xa6\x01\n\nAnchorList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x0e\n\x06\x61ppend\x18\x02 \x01(\x08\x12+\n\x07\x61nchros\x18\x03 \x03(\x0b\x32\x1a.GrabSim.AnchorList.Anchor\x1aL\n\x06\x41nchor\x12#\n\x08location\x18\x01 \x01(\x0b\x32\x11.GrabSim.Location\x12\x1d\n\x05\x63olor\x18\x02 \x01(\x0e\x32\x0e.GrabSim.Color\"A\n\nCameraList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12$\n\x07\x63\x61meras\x18\x02 \x03(\x0e\x32\x13.GrabSim.CameraName\"\xaf\x03\n\nCameraData\x12)\n\x06images\x18\x01 \x03(\x0b\x32\x19.GrabSim.CameraData.Image\x12\x12\n\ttimestamp\x18\x80\x08 \x01(\x03\x12\x0e\n\x04info\x18\x80\x80\x04 \x01(\t\x1a\xd1\x02\n\x05Image\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\r\n\x05\x64type\x18\x03 \x01(\t\x12#\n\x08location\x18\x04 \x01(\x0b\x32\x11.GrabSim.Location\x12#\n\x08rotation\x18\x05 \x01(\x0b\x32\x11.GrabSim.Rotation\x12\r\n\x05width\x18\x06 \x01(\x05\x12\x0e\n\x06height\x18\x07 \x01(\x05\x12\x10\n\x08\x63hannels\x18\x08 \x01(\x05\x12\x0b\n\x03\x66ov\x18\t \x01(\x02\x12\r\n\x05lines\x18\n \x01(\x05\x12\x38\n\nparameters\x18\x0b \x01(\x0b\x32$.GrabSim.CameraData.Image.Parameters\x1aL\n\nParameters\x12\n\n\x02\x66x\x18\x01 \x01(\x02\x12\n\n\x02\x66y\x18\x02 \x01(\x02\x12\n\n\x02\x63x\x18\x03 \x01(\x02\x12\n\n\x02\x63y\x18\x04 \x01(\x02\x12\x0e\n\x06matrix\x18\x05 \x03(\x02\"L\n\x0bLidarParams\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x0b\n\x03\x46OV\x18\x02 \x01(\x02\x12\r\n\x05lines\x18\x03 \x01(\x05\x12\x12\n\nresolution\x18\x04 \x01(\x02\"\xc4\x01\n\nHandTarget\x12\r\n\x05scene\x18\x01 \x01(\x05\x12(\n\x04left\x18\x02 \x01(\x0b\x32\x1a.GrabSim.HandTarget.Target\x12)\n\x05right\x18\x03 \x01(\x0b\x32\x1a.GrabSim.HandTarget.Target\x1aR\n\x06Target\x12#\n\x08location\x18\x01 \x01(\x0b\x32\x11.GrabSim.Location\x12#\n\x08rotation\x18\x02 \x01(\x0b\x32\x11.GrabSim.Rotation\"\x85\x01\n\x0b\x41rmSequence\x12,\n\x04left\x18\x01 \x03(\x0b\x32\x1e.GrabSim.ArmSequence.ArmAngles\x12-\n\x05right\x18\x02 \x03(\x0b\x32\x1e.GrabSim.ArmSequence.ArmAngles\x1a\x19\n\tArmAngles\x12\x0c\n\x04\x64\x61ta\x18\x01 \x03(\x02\"\xbf\x02\n\x0cObstacleList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x32\n\x07objects\x18\x02 \x03(\x0b\x32!.GrabSim.ObstacleList.BasicObject\x1a\xeb\x01\n\x0b\x42\x61sicObject\x12\x39\n\x04name\x18\x01 \x01(\x0e\x32+.GrabSim.ObstacleList.BasicObject.ShapeName\x12\x0e\n\x06length\x18\x02 \x01(\x02\x12\r\n\x05width\x18\x03 \x01(\x02\x12\x0e\n\x06height\x18\x04 \x01(\x02\x12\x0e\n\x06radius\x18\x05 \x01(\x02\x12\t\n\x01x\x18\x06 \x01(\x02\x12\t\n\x01y\x18\x07 \x01(\x02\x12\x11\n\tdirection\x18\x08 \x01(\x02\"9\n\tShapeName\x12\x08\n\x04\x43ube\x10\x00\x12\n\n\x06Sphere\x10\x01\x12\x0c\n\x08\x43ylinder\x10\x02\x12\x08\n\x04\x43one\x10\x03\"\x9a\x01\n\x0cMovementList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x36\n\tmovements\x18\x02 \x03(\x0b\x32#.GrabSim.MovementList.BasicMovement\x1a\x43\n\rBasicMovement\x12\x10\n\x08objectID\x18\x01 \x01(\x05\x12\r\n\x05speed\x18\x02 \x01(\x02\x12\x11\n\tdirection\x18\x03 \x01(\x02\"R\n\nActionList\x12 \n\x07\x61\x63tions\x18\x01 \x03(\x0b\x32\x0f.GrabSim.Action\x12\x10\n\x08timestep\x18\x02 \x01(\x05\x12\x10\n\x08\x46inished\x18\x03 \x01(\x08\"{\n\nWalkerList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12+\n\x07walkers\x18\x02 \x03(\x0b\x32\x1a.GrabSim.WalkerList.Walker\x1a\x31\n\x06Walker\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x1b\n\x04pose\x18\x02 \x01(\x0b\x32\r.GrabSim.Pose\"\xa9\x01\n\x0eWalkerControls\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x32\n\x08\x63ontrols\x18\x02 \x03(\x0b\x32 .GrabSim.WalkerControls.WControl\x1aT\n\x08WControl\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x10\n\x08\x61utowalk\x18\x02 \x01(\x08\x12\r\n\x05speed\x18\x03 \x01(\x02\x12\x1b\n\x04pose\x18\x04 \x01(\x0b\x32\r.GrabSim.Pose\"K\n\x0b\x43ontrolInfo\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x0c\n\x04type\x18\x02 \x01(\x05\x12\x0e\n\x06\x61\x63tion\x18\x03 \x01(\x05\x12\x0f\n\x07\x63ontent\x18\x04 \x01(\t\"\x88\x01\n\x0c\x41\x63tuatorList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x31\n\tactuators\x18\x02 \x03(\x0b\x32\x1e.GrabSim.ActuatorList.Actuator\x1a\x36\n\x08\x41\x63tuator\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05lower\x18\x02 \x01(\x02\x12\r\n\x05upper\x18\x03 \x01(\x02\"n\n\nSensorList\x12\r\n\x05scene\x18\x01 \x01(\x05\x12+\n\x07sensors\x18\x02 \x03(\x0b\x32\x1a.GrabSim.SensorList.Sensor\x1a$\n\x06Sensor\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x03(\x01\"\x80\x02\n\x10HandPostureInfos\x12\r\n\x05scene\x18\x01 \x01(\x05\x12G\n\x12handPostureObjects\x18\x02 \x03(\x0b\x32+.GrabSim.HandPostureInfos.HandPostureObject\x12\x10\n\x08\x61utoMove\x18\x03 \x01(\x08\x1a\x81\x01\n\x11HandPostureObject\x12\x0f\n\x07handNum\x18\x01 \x01(\x05\x12\t\n\x01x\x18\x02 \x01(\x02\x12\t\n\x01y\x18\x03 \x01(\x02\x12\t\n\x01z\x18\x04 \x01(\x02\x12\x0c\n\x04roll\x18\x05 \x01(\x02\x12\r\n\x05pitch\x18\x06 \x01(\x02\x12\x0b\n\x03yaw\x18\x07 \x01(\x02\x12\x10\n\x08handMove\x18\x08 \x01(\x08\"\xf3\x01\n\x0eIKControlInfos\x12\x41\n\x10IKControlObjects\x18\x01 \x03(\x0b\x32\'.GrabSim.IKControlInfos.IKControlObject\x1a\x9d\x01\n\x0fIKControlObject\x12\x0f\n\x07handNum\x18\x01 \x01(\x05\x12\x10\n\x08\x64istance\x18\x02 \x01(\x02\x12\r\n\x05\x61xis1\x18\x03 \x01(\x02\x12\r\n\x05\x61xis2\x18\x04 \x01(\x02\x12\r\n\x05\x61xis3\x18\x05 \x01(\x02\x12\r\n\x05\x61xis4\x18\x06 \x01(\x02\x12\r\n\x05\x61xis5\x18\x07 \x01(\x02\x12\r\n\x05\x61xis6\x18\x08 \x01(\x02\x12\r\n\x05\x61xis7\x18\t \x01(\x02\".\n\nCameraInfo\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x11\n\tcameraNum\x18\x02 \x01(\x05\"$\n\x12\x43hangeCameraResult\x12\x0e\n\x06result\x18\x01 \x01(\t\"\x1b\n\nFloatValue\x12\r\n\x05value\x18\x01 \x01(\x02\"X\n\x12\x45nableEndPointCtrl\x12\r\n\x05scene\x18\x01 \x01(\x05\x12#\n\x08handSide\x18\x02 \x01(\x0e\x32\x11.GrabSim.HandSide\x12\x0e\n\x06\x65nable\x18\x03 \x01(\x08\"\x91\x01\n\x10\x45ndPointPosition\x12\r\n\x05scene\x18\x01 \x01(\x05\x12#\n\x08handSide\x18\x02 \x01(\x0e\x32\x11.GrabSim.HandSide\x12\t\n\x01x\x18\x03 \x01(\x02\x12\t\n\x01y\x18\x04 \x01(\x02\x12\t\n\x01z\x18\x05 \x01(\x02\x12\x0c\n\x04roll\x18\x06 \x01(\x02\x12\r\n\x05pitch\x18\x07 \x01(\x02\x12\x0b\n\x03yaw\x18\x08 \x01(\x02\"T\n\x0fObjectJointCtrl\x12\r\n\x05scene\x18\x01 \x01(\x05\x12\x10\n\x08objectId\x18\x02 \x01(\x05\x12\x11\n\tjointName\x18\x03 \x01(\t\x12\r\n\x05\x61ngle\x18\x04 \x01(\x02*]\n\x05\x43olor\x12\t\n\x05\x42lack\x10\x00\x12\x08\n\x04\x42lue\x10\x01\x12\t\n\x05Green\x10\x02\x12\x08\n\x04\x41qua\x10\x03\x12\x07\n\x03Red\x10\x04\x12\n\n\x06Purple\x10\x05\x12\n\n\x06Yellow\x10\x06\x12\t\n\x05White\x10\x07*\xd3\x02\n\nCameraName\x12\r\n\t_UNKNOWN_\x10\x00\x12\x0f\n\nFoot_Lidar\x10\x83\x02\x12\x0f\n\nWaist_RGBD\x10\x80\x04\x12\x10\n\x0bWaist_Color\x10\x81\x04\x12\x10\n\x0bWaist_Depth\x10\x82\x04\x12\x0f\n\nChest_RGBD\x10\x80\x06\x12\x10\n\x0b\x43hest_Color\x10\x81\x06\x12\x10\n\x0b\x43hest_Depth\x10\x82\x06\x12\x0e\n\tHead_RGBD\x10\x80\x08\x12\x0f\n\nHead_Color\x10\x81\x08\x12\x0f\n\nHead_Depth\x10\x82\x08\x12\x11\n\x0cHead_Segment\x10\x83\x08\x12\r\n\x08\x43\x31_Color\x10\x81\"\x12\r\n\x08\x43\x31_Depth\x10\x82\"\x12\r\n\x08\x43\x32_Color\x10\x81$\x12\r\n\x08\x43\x32_Depth\x10\x82$\x12\r\n\x08\x43\x33_Color\x10\x81&\x12\r\n\x08\x43\x33_Depth\x10\x82&\x12\r\n\x08\x43\x34_Color\x10\x81(\x12\r\n\x08\x43\x34_Depth\x10\x82(*\x1f\n\x08HandSide\x12\x08\n\x04Left\x10\x00\x12\t\n\x05Right\x10\x01\x32\xae\x0f\n\x07GrabSim\x12\x31\n\x0c\x41\x63quireTypes\x12\x0c.GrabSim.NUL\x1a\x11.GrabSim.TypeList\"\x00\x12>\n\x14\x41\x63quireAvailableMaps\x12\x0c.GrabSim.NUL\x1a\x16.GrabSim.AvailableMaps\"\x00\x12\x36\n\x0e\x41\x63quireWalkers\x12\x0c.GrabSim.NUL\x1a\x14.GrabSim.WalkerNames\"\x00\x12$\n\x04Init\x12\x0c.GrabSim.NUL\x1a\x0c.GrabSim.NUL\"\x00\x12/\n\x08SetWorld\x12\x11.GrabSim.BatchMap\x1a\x0e.GrabSim.World\"\x00\x12-\n\x07\x41\x64\x64Maps\x12\x10.GrabSim.MapList\x1a\x0e.GrabSim.World\"\x00\x12,\n\nObserveAll\x12\x0c.GrabSim.NUL\x1a\x0e.GrabSim.World\"\x00\x12/\n\x05Reset\x12\x14.GrabSim.ResetParams\x1a\x0e.GrabSim.Scene\"\x00\x12\x34\n\x0bMakeObjects\x12\x13.GrabSim.ObjectList\x1a\x0e.GrabSim.Scene\"\x00\x12>\n\x0eGetHandGesture\x12\x1a.GrabSim.HandGestureParams\x1a\x0e.GrabSim.Scene\"\x00\x12\x33\n\nAddObjects\x12\x13.GrabSim.ObjectList\x1a\x0e.GrabSim.Scene\"\x00\x12\x36\n\rRemoveObjects\x12\x13.GrabSim.RemoveList\x1a\x0e.GrabSim.Scene\"\x00\x12\x32\n\x0c\x43leanObjects\x12\x10.GrabSim.SceneID\x1a\x0e.GrabSim.Scene\"\x00\x12\x33\n\nAddAnchors\x12\x13.GrabSim.AnchorList\x1a\x0e.GrabSim.Scene\"\x00\x12-\n\x07Observe\x12\x10.GrabSim.SceneID\x1a\x0e.GrabSim.Scene\"\x00\x12\'\n\x02\x44o\x12\x0f.GrabSim.Action\x1a\x0e.GrabSim.Scene\"\x00\x12\x38\n\x08SetLidar\x12\x14.GrabSim.LidarParams\x1a\x14.GrabSim.LidarParams\"\x00\x12\x37\n\x08MoveHand\x12\x13.GrabSim.HandTarget\x1a\x14.GrabSim.ArmSequence\"\x00\x12\x35\n\x07\x43\x61pture\x12\x13.GrabSim.CameraList\x1a\x13.GrabSim.CameraData\"\x00\x12\x37\n\x0c\x41\x64\x64Obstacles\x12\x15.GrabSim.ObstacleList\x1a\x0e.GrabSim.Scene\"\x00\x12\x36\n\x0bSetMovement\x12\x15.GrabSim.MovementList\x1a\x0e.GrabSim.Scene\"\x00\x12\x32\n\tGetAction\x12\x0e.GrabSim.Scene\x1a\x13.GrabSim.ActionList\"\x00\x12\x32\n\tAddWalker\x12\x13.GrabSim.WalkerList\x1a\x0e.GrabSim.Scene\"\x00\x12;\n\x0e\x43ontrolWalkers\x12\x17.GrabSim.WalkerControls\x1a\x0e.GrabSim.Scene\"\x00\x12\x36\n\rRemoveWalkers\x12\x13.GrabSim.RemoveList\x1a\x0e.GrabSim.Scene\"\x00\x12\x32\n\x0c\x43leanWalkers\x12\x10.GrabSim.SceneID\x1a\x0e.GrabSim.Scene\"\x00\x12\x36\n\x0c\x43ontrolRobot\x12\x14.GrabSim.ControlInfo\x1a\x0e.GrabSim.Scene\"\x00\x12>\n\x11GetActuatorRanges\x12\x10.GrabSim.SceneID\x1a\x15.GrabSim.ActuatorList\"\x00\x12\x39\n\x0eGetSensorDatas\x12\x10.GrabSim.SceneID\x1a\x13.GrabSim.SensorList\"\x00\x12I\n\x11GetIKControlInfos\x12\x19.GrabSim.HandPostureInfos\x1a\x17.GrabSim.IKControlInfos\"\x00\x12\x42\n\x0c\x43hangeCamera\x12\x13.GrabSim.CameraInfo\x1a\x1b.GrabSim.ChangeCameraResult\"\x00\x12\x38\n\x11SetLightIntensity\x12\x13.GrabSim.FloatValue\x1a\x0c.GrabSim.NUL\"\x00\x12\x44\n\x15SetEnableEndPointCtrl\x12\x1b.GrabSim.EnableEndPointCtrl\x1a\x0c.GrabSim.NUL\"\x00\x12@\n\x13SetEndPointPosition\x12\x19.GrabSim.EndPointPosition\x1a\x0c.GrabSim.NUL\"\x00\x12?\n\x13SetObjectJointAngle\x12\x18.GrabSim.ObjectJointCtrl\x1a\x0c.GrabSim.NUL\"\x00\x62\x06proto3')
 )
 
 _COLOR = _descriptor.EnumDescriptor(
@@ -64,8 +64,8 @@ _COLOR = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=5590,
-  serialized_end=5683,
+  serialized_start=5607,
+  serialized_end=5700,
 )
 _sym_db.RegisterEnumDescriptor(_COLOR)
 
@@ -159,8 +159,8 @@ _CAMERANAME = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=5686,
-  serialized_end=6025,
+  serialized_start=5703,
+  serialized_end=6042,
 )
 _sym_db.RegisterEnumDescriptor(_CAMERANAME)
 
@@ -182,8 +182,8 @@ _HANDSIDE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=6027,
-  serialized_end=6058,
+  serialized_start=6044,
+  serialized_end=6075,
 )
 _sym_db.RegisterEnumDescriptor(_HANDSIDE)
 
@@ -257,8 +257,8 @@ _ACTION_ACTIONTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1826,
-  serialized_end=1930,
+  serialized_start=1843,
+  serialized_end=1947,
 )
 _sym_db.RegisterEnumDescriptor(_ACTION_ACTIONTYPE)
 
@@ -287,8 +287,8 @@ _OBSTACLELIST_BASICOBJECT_SHAPENAME = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=3721,
-  serialized_end=3778,
+  serialized_start=3738,
+  serialized_end=3795,
 )
 _sym_db.RegisterEnumDescriptor(_OBSTACLELIST_BASICOBJECT_SHAPENAME)
 
@@ -960,6 +960,13 @@ _SCENE_OBJECT_JOINT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='current', full_name='GrabSim.Scene.Object.Joint.current', index=3,
+      number=4, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -973,7 +980,7 @@ _SCENE_OBJECT_JOINT = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=1409,
-  serialized_end=1460,
+  serialized_end=1477,
 )
 
 _SCENE_OBJECT_BOX_DIAGONAL = _descriptor.Descriptor(
@@ -1037,8 +1044,8 @@ _SCENE_OBJECT_BOX_DIAGONAL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1539,
-  serialized_end=1621,
+  serialized_start=1556,
+  serialized_end=1638,
 )
 
 _SCENE_OBJECT_BOX = _descriptor.Descriptor(
@@ -1074,8 +1081,8 @@ _SCENE_OBJECT_BOX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1463,
-  serialized_end=1621,
+  serialized_start=1480,
+  serialized_end=1638,
 )
 
 _SCENE_OBJECT = _descriptor.Descriptor(
@@ -1147,7 +1154,7 @@ _SCENE_OBJECT = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=1155,
-  serialized_end=1621,
+  serialized_end=1638,
 )
 
 _SCENE_WALKER = _descriptor.Descriptor(
@@ -1204,8 +1211,8 @@ _SCENE_WALKER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1623,
-  serialized_end=1738,
+  serialized_start=1640,
+  serialized_end=1755,
 )
 
 _SCENE = _descriptor.Descriptor(
@@ -1305,7 +1312,7 @@ _SCENE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=671,
-  serialized_end=1738,
+  serialized_end=1755,
 )
 
 
@@ -1350,8 +1357,8 @@ _ACTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1741,
-  serialized_end=1930,
+  serialized_start=1758,
+  serialized_end=1947,
 )
 
 
@@ -1374,8 +1381,8 @@ _NUL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1932,
-  serialized_end=1937,
+  serialized_start=1949,
+  serialized_end=1954,
 )
 
 
@@ -1433,8 +1440,8 @@ _RESETPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1939,
-  serialized_end=2030,
+  serialized_start=1956,
+  serialized_end=2047,
 )
 
 
@@ -1527,8 +1534,8 @@ _OBJECTLIST_OBJECT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2108,
-  serialized_end=2241,
+  serialized_start=2125,
+  serialized_end=2258,
 )
 
 _OBJECTLIST = _descriptor.Descriptor(
@@ -1564,8 +1571,8 @@ _OBJECTLIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2033,
-  serialized_end=2241,
+  serialized_start=2050,
+  serialized_end=2258,
 )
 
 
@@ -1616,8 +1623,8 @@ _HANDGESTUREPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2243,
-  serialized_end=2331,
+  serialized_start=2260,
+  serialized_end=2348,
 )
 
 
@@ -1654,8 +1661,8 @@ _REMOVELIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2333,
-  serialized_end=2373,
+  serialized_start=2350,
+  serialized_end=2390,
 )
 
 
@@ -1692,8 +1699,8 @@ _ANCHORLIST_ANCHOR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2466,
-  serialized_end=2542,
+  serialized_start=2483,
+  serialized_end=2559,
 )
 
 _ANCHORLIST = _descriptor.Descriptor(
@@ -1736,8 +1743,8 @@ _ANCHORLIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2376,
-  serialized_end=2542,
+  serialized_start=2393,
+  serialized_end=2559,
 )
 
 
@@ -1774,8 +1781,8 @@ _CAMERALIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2544,
-  serialized_end=2609,
+  serialized_start=2561,
+  serialized_end=2626,
 )
 
 
@@ -1833,8 +1840,8 @@ _CAMERADATA_IMAGE_PARAMETERS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2967,
-  serialized_end=3043,
+  serialized_start=2984,
+  serialized_end=3060,
 )
 
 _CAMERADATA_IMAGE = _descriptor.Descriptor(
@@ -1933,8 +1940,8 @@ _CAMERADATA_IMAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2706,
-  serialized_end=3043,
+  serialized_start=2723,
+  serialized_end=3060,
 )
 
 _CAMERADATA = _descriptor.Descriptor(
@@ -1977,8 +1984,8 @@ _CAMERADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2612,
-  serialized_end=3043,
+  serialized_start=2629,
+  serialized_end=3060,
 )
 
 
@@ -2029,8 +2036,8 @@ _LIDARPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3045,
-  serialized_end=3121,
+  serialized_start=3062,
+  serialized_end=3138,
 )
 
 
@@ -2067,8 +2074,8 @@ _HANDTARGET_TARGET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3238,
-  serialized_end=3320,
+  serialized_start=3255,
+  serialized_end=3337,
 )
 
 _HANDTARGET = _descriptor.Descriptor(
@@ -2111,8 +2118,8 @@ _HANDTARGET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3124,
-  serialized_end=3320,
+  serialized_start=3141,
+  serialized_end=3337,
 )
 
 
@@ -2142,8 +2149,8 @@ _ARMSEQUENCE_ARMANGLES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3431,
-  serialized_end=3456,
+  serialized_start=3448,
+  serialized_end=3473,
 )
 
 _ARMSEQUENCE = _descriptor.Descriptor(
@@ -2179,8 +2186,8 @@ _ARMSEQUENCE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3323,
-  serialized_end=3456,
+  serialized_start=3340,
+  serialized_end=3473,
 )
 
 
@@ -2260,8 +2267,8 @@ _OBSTACLELIST_BASICOBJECT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3543,
-  serialized_end=3778,
+  serialized_start=3560,
+  serialized_end=3795,
 )
 
 _OBSTACLELIST = _descriptor.Descriptor(
@@ -2297,8 +2304,8 @@ _OBSTACLELIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3459,
-  serialized_end=3778,
+  serialized_start=3476,
+  serialized_end=3795,
 )
 
 
@@ -2342,8 +2349,8 @@ _MOVEMENTLIST_BASICMOVEMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3868,
-  serialized_end=3935,
+  serialized_start=3885,
+  serialized_end=3952,
 )
 
 _MOVEMENTLIST = _descriptor.Descriptor(
@@ -2379,8 +2386,8 @@ _MOVEMENTLIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3781,
-  serialized_end=3935,
+  serialized_start=3798,
+  serialized_end=3952,
 )
 
 
@@ -2424,8 +2431,8 @@ _ACTIONLIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3937,
-  serialized_end=4019,
+  serialized_start=3954,
+  serialized_end=4036,
 )
 
 
@@ -2462,8 +2469,8 @@ _WALKERLIST_WALKER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4095,
-  serialized_end=4144,
+  serialized_start=4112,
+  serialized_end=4161,
 )
 
 _WALKERLIST = _descriptor.Descriptor(
@@ -2499,8 +2506,8 @@ _WALKERLIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4021,
-  serialized_end=4144,
+  serialized_start=4038,
+  serialized_end=4161,
 )
 
 
@@ -2551,8 +2558,8 @@ _WALKERCONTROLS_WCONTROL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4232,
-  serialized_end=4316,
+  serialized_start=4249,
+  serialized_end=4333,
 )
 
 _WALKERCONTROLS = _descriptor.Descriptor(
@@ -2588,8 +2595,8 @@ _WALKERCONTROLS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4147,
-  serialized_end=4316,
+  serialized_start=4164,
+  serialized_end=4333,
 )
 
 
@@ -2640,8 +2647,8 @@ _CONTROLINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4318,
-  serialized_end=4393,
+  serialized_start=4335,
+  serialized_end=4410,
 )
 
 
@@ -2685,8 +2692,8 @@ _ACTUATORLIST_ACTUATOR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4478,
-  serialized_end=4532,
+  serialized_start=4495,
+  serialized_end=4549,
 )
 
 _ACTUATORLIST = _descriptor.Descriptor(
@@ -2722,8 +2729,8 @@ _ACTUATORLIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4396,
-  serialized_end=4532,
+  serialized_start=4413,
+  serialized_end=4549,
 )
 
 
@@ -2760,8 +2767,8 @@ _SENSORLIST_SENSOR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4608,
-  serialized_end=4644,
+  serialized_start=4625,
+  serialized_end=4661,
 )
 
 _SENSORLIST = _descriptor.Descriptor(
@@ -2797,8 +2804,8 @@ _SENSORLIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4534,
-  serialized_end=4644,
+  serialized_start=4551,
+  serialized_end=4661,
 )
 
 
@@ -2877,8 +2884,8 @@ _HANDPOSTUREINFOS_HANDPOSTUREOBJECT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4774,
-  serialized_end=4903,
+  serialized_start=4791,
+  serialized_end=4920,
 )
 
 _HANDPOSTUREINFOS = _descriptor.Descriptor(
@@ -2921,8 +2928,8 @@ _HANDPOSTUREINFOS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4647,
-  serialized_end=4903,
+  serialized_start=4664,
+  serialized_end=4920,
 )
 
 
@@ -3008,8 +3015,8 @@ _IKCONTROLINFOS_IKCONTROLOBJECT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4992,
-  serialized_end=5149,
+  serialized_start=5009,
+  serialized_end=5166,
 )
 
 _IKCONTROLINFOS = _descriptor.Descriptor(
@@ -3038,8 +3045,8 @@ _IKCONTROLINFOS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4906,
-  serialized_end=5149,
+  serialized_start=4923,
+  serialized_end=5166,
 )
 
 
@@ -3076,8 +3083,8 @@ _CAMERAINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5151,
-  serialized_end=5197,
+  serialized_start=5168,
+  serialized_end=5214,
 )
 
 
@@ -3107,8 +3114,8 @@ _CHANGECAMERARESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5199,
-  serialized_end=5235,
+  serialized_start=5216,
+  serialized_end=5252,
 )
 
 
@@ -3138,8 +3145,8 @@ _FLOATVALUE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5237,
-  serialized_end=5264,
+  serialized_start=5254,
+  serialized_end=5281,
 )
 
 
@@ -3183,8 +3190,8 @@ _ENABLEENDPOINTCTRL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5266,
-  serialized_end=5354,
+  serialized_start=5283,
+  serialized_end=5371,
 )
 
 
@@ -3263,8 +3270,8 @@ _ENDPOINTPOSITION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5357,
-  serialized_end=5502,
+  serialized_start=5374,
+  serialized_end=5519,
 )
 
 
@@ -3315,8 +3322,8 @@ _OBJECTJOINTCTRL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5504,
-  serialized_end=5588,
+  serialized_start=5521,
+  serialized_end=5605,
 )
 
 _AVAILABLEMAPS_MAPINFO.containing_type = _AVAILABLEMAPS
@@ -3919,8 +3926,8 @@ _GRABSIM = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=6061,
-  serialized_end=8027,
+  serialized_start=6078,
+  serialized_end=8044,
   methods=[
   _descriptor.MethodDescriptor(
     name='AcquireTypes',
