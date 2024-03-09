@@ -11,28 +11,65 @@ import matplotlib.pyplot as plt
 from moviepy.editor import ImageSequenceClip, ImageClip, concatenate_videoclips
 
 import grpc
+import argparse
+import pickle
+import os
+
+import hashlib
+import random
+
+def string_to_seed(input_string):
+    hash_object = hashlib.sha256(input_string.encode())
+    hex_dig = hash_object.hexdigest()
+    # 将哈希值转换为整数
+    seed = int(hex_dig, 16)%100000009
+    return seed
+
+
+# 创建解析器
+parser = argparse.ArgumentParser(description="数据生成")
+
+# 添加参数
+parser.add_argument('--host', type=str)
+parser.add_argument('--output_path', type=str)
+parser.add_argument('--data_info', type=str, default='')
+parser.add_argument('--n_objs', type=int)
+parser.add_argument('--handSide', type=str)
+parser.add_argument('--event', type=str)
+# 解析命令行参数
+args = parser.parse_args()
 
 print('数据生成脚本启动')
-
-host = '127.0.0.1:30008'
+print("端口为:",args.host)
+host = args.host
 scene_num = 1
 map_id = 2
 server = SimServer(host, scene_num=scene_num, map_id=map_id)
-
 sim = SimAction(host, scene_id=0)
 
-import pickle
+# # 生成种子
+# seed = string_to_seed(args.output_path)
+# random.seed(seed)
+# np.random.seed(seed)
 
-# with open('Imitation_data/RLexpert/0718_single_merge_data_new.pkl', 'rb') as f:
-#     df = pickle.load(f)
+events = {
+    'graspTargetObj':{'act':sim.graspTargetObj,'check':sim.checkGraspTargetObj},
+    'placeTargetObj':{'act':sim.placeTargetObj,'check':sim.checkPlaceTargetObj},
+    'moveNear':{'act':sim.moveNear,'check':sim.checkMoveNear},
+    'knockOver':{'act':sim.knockOver,'check':sim.checkKnockOver},
+    'pushFront':{'act':sim.pushFront,'check':sim.checkPushFront},
+    'pushLeft':{'act':sim.pushLeft,'check':sim.checkPushLeft},
+    'pushRight':{'act':sim.pushRight,'check':sim.checkPushRight}
+}
+event = events[args.event]
 
-import os
 
-output_path = '/data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_graspTargetObj_Right'
-data_info=""
+output_path = '/data2/liangxiwen/zkd/datasets/dataGen/DATA'+ os.sep+args.output_path
+data_info=args.data_info
 meta_data_path = output_path + os.sep + 'meta_data.json'
-n_objs = 1
-handSide = 'Right'
+n_objs = args.n_objs
+handSide = args.handSide
+
 can_list = list(sim.can_list)
 if not os.path.exists(output_path):
     os.makedirs(output_path)
@@ -69,9 +106,6 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import random
 
-random.seed(42)
-np.random.seed(42)
-
 def Resize(mat):
     mat = Image.fromarray(mat, mode='RGB')
     mat = mat.resize((224, 224))
@@ -90,7 +124,7 @@ for epoch in range(1):
     offline_data = dict()
     # shuffled_list = df.copy()
     # random.shuffle(shuffled_list)
-    for index in tqdm(range(1500)):
+    for index in tqdm(range(10000)):
         if index < start_index:
             continue
         sim.reset()
@@ -103,13 +137,14 @@ for epoch in range(1):
         desk_height = 98 # 固定桌子高度
         desk_id = random.choice(sim.desks.ID.values)
         sim.addDesk(desk_id, h=desk_height)
-        obj_id = random.choice(can_list)
-        other_obj_ids = random.choices([x for x in sim.objs.ID.values if x != obj_id], k=n_objs - 1)
-        ids = [obj_id] + other_obj_ids
+        ids = random.sample(list(can_list), n_objs)
         objList = sim.genObjs(n=n_objs, ids=ids, h=sim.desk_height, handSide = handSide)
-        target_origin_loc = sim.getObjsInfo()[1]['location']
-        obj_id = objList[0][0]
-        target_obj = sim.objs[sim.objs.ID == obj_id].Name.values[0]
+        target_obj_index = random.randint(1,n_objs)
+        if n_objs>1:
+            other_obj_index = random.choice([x for x in range(1,n_objs+1) if x!=target_obj_index])
+        target_origin_loc = sim.getObjsInfo()[target_obj_index]['location']
+        target_obj_id = objList[target_obj_index-1][0]
+        target_obj = sim.objs[sim.objs.ID == target_obj_id].Name.values[0]
         sx, sy = sim.getObservation().location.X, sim.getObservation().location.Y
 
         x = np.random.uniform(-10, 10)
@@ -122,29 +157,51 @@ for epoch in range(1):
         offline_data['robot_location'] = (sx, sy, 90)
         offline_data['deskInfo'] = {'id': desk_id, 'height': sim.desk_height}
         offline_data['objList'] = objList
-        offline_data['targetObjID'] = obj_id
+        offline_data['targetObjID'] = target_obj_id
+        offline_data['target_obj_index'] = target_obj_index
         offline_data['initState'] = sim.getState()
         offline_data['initLoc'] = (ox-sx, oy-sy, oz)
         offline_data['handSide'] = handSide
+        offline_data['event'] = args.event
         offline_data['trajectory'] = []
+
         last_action = (ox-sx, oy-sy, oz)
         last_img = Resize(sim.getImage())
         last_state = sim.getState()
         # do_values = []
-        for action in sim.graspTargetObj(obj_id=1,handSide=handSide):
-            # values = sim.bow_head()
-            # do_values.append(values)
-            each_frame = {}
-            each_frame['img'] = last_img
-            each_frame['state'] = last_state
-            each_frame['action'] = action
-            time.sleep(0.05)
-            last_img = Resize(sim.getImage())
-            last_state = sim.getState()
-            each_frame['after_state'] = last_state
-            offline_data['trajectory'].append(each_frame)
+        if args.event=='placeTargetObj':
+            for action in sim.graspTargetObj(obj_id=target_obj_index,handSide=handSide):
+                pass
+            if not sim.checkGraspTargetObj(obj_id=target_obj_index):
+                continue
+        if args.event=='moveNear':
+            for action in event['act'](obj1_id=target_obj_index,obj2_id=other_obj_index, handSide=handSide):
+                # values = sim.bow_head()
+                # do_values.append(values)
+                each_frame = {}
+                each_frame['img'] = last_img
+                each_frame['state'] = last_state
+                each_frame['action'] = action
+                time.sleep(0.05)
+                last_img = Resize(sim.getImage())
+                last_state = sim.getState()
+                each_frame['after_state'] = last_state
+                offline_data['trajectory'].append(each_frame)
+        else:
+            for action in event['act'](obj_id=target_obj_index,handSide=handSide):
+                # values = sim.bow_head()
+                # do_values.append(values)
+                each_frame = {}
+                each_frame['img'] = last_img
+                each_frame['state'] = last_state
+                each_frame['action'] = action
+                time.sleep(0.05)
+                last_img = Resize(sim.getImage())
+                last_state = sim.getState()
+                each_frame['after_state'] = last_state
+                offline_data['trajectory'].append(each_frame)
 
-        if sim.checkGraspTargetObj(obj_id=1):
+        if (args.event == 'moveNear' and event['check'](obj1_id=target_obj_index,obj2_id=other_obj_index)) or (args.event != 'moveNear' and event['check'](obj_id=target_obj_index)) :
             collected_num += 1
             is_success = True
             print(f'Success have collected {collected_num} datas')
@@ -152,18 +209,19 @@ for epoch in range(1):
                 pickle.dump(offline_data, f)
         else:
             is_success = False
-            print('fail data:', index, desk_id, obj_id, objList)
+            print('fail data:', index, desk_id, target_obj_id, objList)
 
         im = sim.getImage()
         plt.imshow(im)
-        plt.savefig(before_grasp_images_path + f"/{index:04d}_{is_success}_{target_obj}.png", format='png')
+        plt.savefig(before_grasp_images_path + f"/{index:04d}_{is_success}_{target_obj}_{args.event}.png", format='png')
         # do_values = np.array(do_values)
         # np.save(log_images_path + f"/{index:04d}_{is_success}_{target_obj}.pkl", do_values)
         # 创建视频
-        images = [ImageClip((frame['img'] * 255).astype(np.uint8), duration=1 / 3) for frame in
-                  offline_data['trajectory']]
-        clip = concatenate_videoclips(images)
-        clip.write_videofile(video_path + f"/{index:04d}_{is_success}_{target_obj}.mp4", fps=3)
+        if len(offline_data['trajectory'])>0:
+            images = [ImageClip((frame['img'] * 255).astype(np.uint8), duration=1 / 3) for frame in
+                      offline_data['trajectory']]
+            clip = concatenate_videoclips(images)
+            clip.write_videofile(video_path + f"/{index:04d}_{is_success}_{target_obj}_{args.event}.mp4", fps=3)
 
         # 更新meta_data
         meta_data = {
