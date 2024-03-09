@@ -1222,7 +1222,7 @@ class DamWorld(nn.Module):
         
         action = self.action_net(pooled)
 
-        action_token = self.predict_action_net(action).unsqueeze(1)
+        action_token = pooled.unsqueeze(1) # self.predict_action_net(action).unsqueeze(1)
         prompt_token = torch.cat([text_token,action_token], dim=1)
         pos_emb = posemb_sincos_1d(prompt_token.shape[1], prompt_token.shape[-1], dtype = prompt_token.dtype, device = prompt_token.device)
         prompt_token = prompt_token + pos_emb

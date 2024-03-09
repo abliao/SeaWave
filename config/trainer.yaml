@@ -36,13 +36,19 @@ datasets:
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_11
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_4
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_3
-      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_left
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_graspTargetObj_Right_2
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right_2
+#      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_knockOver_Right
+#      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_knockOver_Right
+#      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_moveNear_Right
+
     instructions_path: /data2/liangxiwen/zkd/IL/instructions/training.pkl
     history_len: ${datasets.history_len}
     instructions_level: 
       - 0
-      # - 1
-      # - 2
+#       - 1
+#       - 2
       # - 3
       # - 4
     sample_frame: 8
@@ -56,13 +62,18 @@ datasets:
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_11
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_4
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_3
-      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_left
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_graspTargetObj_Right_2
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right_2
+#      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_knockOver_Right
+#      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_knockOver_Right
+#      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_moveNear_Right
     instructions_path: /data2/liangxiwen/zkd/IL/instructions/training.pkl
     history_len: ${datasets.history_len}
     instructions_level: 
       - 0
-      # - 1
-      # - 2
+#       - 1
+#       - 2
       # - 3
       # - 4
     sample_frame: 8
@@ -90,15 +101,16 @@ common:
   do_checkpoint: True
   seed: 0
   sequence_length: 1 # ${world_model.max_blocks}
-  resume: False # set by resume.sh script only.
+  resume: True # set by resume.sh script only.
 
 initialization:
-  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-22/13-42-37/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/21-41-10/checkpoints/last.pt #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/14-02-01/checkpoints/last.pt  #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-15/10-31-52/checkpoints/last.pt
+#  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-20/11-44-02/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/21-41-10/checkpoints/last.pt #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/14-02-01/checkpoints/last.pt  #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-15/10-31-52/checkpoints/last.pt
+  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-03-06/13-08-23/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-03-01/19-32-27/checkpoints/last.pt
   # 2024-02-20/11-44-02 87%成功率
   # 14-02-01 : 80%成功率
   load_tokenizer: False
   load_world_model: True 
-  load_actor: True 
+  load_actor: True
 
 training:
   should: True
@@ -109,7 +121,7 @@ training:
     max_grad_norm: 10.0
     weight_decay: 0.0004 # 0.01
     start_after_epochs: 0
-    learning_rate: 0.00001
+    learning_rate: 0.00001 # 0.00001
     lr_scheduler_func: CosineAnnealingLR # StepLR CosineAnnealingLR
     lr_scheduler_config: 
       T_max: 10
@@ -117,7 +129,7 @@ training:
       # step_size: 20
     loss_weight:
       - 1
-      - 0.0
+      - 0
 
 evaluation:
   should: True

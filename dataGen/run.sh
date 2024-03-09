@@ -1,13 +1,20 @@
 #!/bin/bash
 
+port=30011
+host="127.0.0.1:${port}"
 
+data_info=""
+n_objs=2
+handSide="Right"
+event='graspTargetObj'
+output_path="${n_objs}_objs_${event}_${handSide}"
 # 定义程序的命令或路径
-command1="/data2/liangxiwen/zkd/simulator/Linux-02-20/HARIX_RDKSim/Binaries/Linux/HARIX_RDKSim HARIX_RDKSim -graphicsadapter=5 -port=30008 -RenderOffScreen"
+command1="/data2/liangxiwen/zkd/simulator/Linux-02-20/HARIX_RDKSim/Binaries/Linux/HARIX_RDKSim HARIX_RDKSim -graphicsadapter=5 -port=${port} -RenderOffScreen"
 
-command2="python dataGen.py"
+command2="python dataGen.py --host=${host} --output_path=${output_path} --data_info=${data_info} --n_objs=${n_objs} --handSide=${handSide} --event=${event}"
 
 # 定义重启间隔时间（秒）
-restart_interval=3600  # 例如，每小时重启一次
+restart_interval=7200  # 例如，每2小时重启一次
 
 while true; do
     # 启动两个程序
@@ -18,7 +25,7 @@ while true; do
     sleep 10
 
     echo "Starting program 2..."
-    $command2 &
+    $command2 > "${output_path}.log" &
     pid2=$!  # 获取程序2的PID
     echo "Program 2 started with PID $pid2"
 

@@ -128,18 +128,16 @@ def Resize(mat):
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-def grasp(sim,agent,log,robot_location,objList,device='cuda',history_len=1,handSide='Right',control='joint'):
+def grasp(sim,agent,log,target_obj_index,robot_location,objList,device='cuda',history_len=1,handSide='Right',control='joint'):
     robot_location=np.array(robot_location)
     instr=log['instruction']
 
-    max_steps=80
-    max_collision=0
+    max_steps=100
     obs=Resize(sim.getImage())
     img=torch.Tensor(obs)
     img=img.reshape(-1,1,*img.shape).permute(0,1,4,2,3).to(device)
     imgs=torch.repeat_interleave(img, history_len, dim=1)
     target_oringin_loc=sim.getObjsInfo()[1]['location']
-    state_targe_loc = objList[0][1:4]
     sensors=sim.getState()['sensors']
     # state = np.concatenate([sensors[3]['data'],state_targe_loc])
     state = np.array(sensors[3]['data'])
@@ -153,7 +151,7 @@ def grasp(sim,agent,log,robot_location,objList,device='cuda',history_len=1,handS
     log['imgs']=[sim.getImage()]
     joints = np.array(sim.getActuators())
     for _ in range(max_steps):
-        sim.bow_head()
+        # sim.bow_head()
         time.sleep(0.03)
         obs=Resize(sim.getImage())
         img=torch.Tensor(obs)
@@ -185,11 +183,14 @@ def grasp(sim,agent,log,robot_location,objList,device='cuda',history_len=1,handS
         last_action=predict
         if handSide=='Right':
             last_action[:3],last_action[3:6]= last_action[3:6], last_action[:3]
+        else:
+            last_action[-2],last_action[-1] = last_action[-1],last_action[-2]
+
         if control=='ee':
             if sim.grasp_state[handSide]==0:
-                msg=sim.moveHand(x=last_action[0],y=last_action[1],z=last_action[2],keep_rpy=(0,0,0),method='diff',gap=0.1,handSide=handSide)
+                msg=sim.moveHand(x=last_action[0],y=last_action[1],z=last_action[2],keep_rpy=(0,0,0),method='diff',gap=0.3,handSide=handSide)
             else:
-                msg=sim.moveHand(x=last_action[0],y=last_action[1],z=last_action[2],method='diff',gap=0.1,handSide=handSide)
+                msg=sim.moveHand(x=last_action[0],y=last_action[1],z=last_action[2],method='diff',gap=0.3,handSide=handSide)
         else:
             now_joints = np.array(sim.getActuators())
             joint_ids = [-12,-11,-6,-5]
@@ -213,128 +214,267 @@ def grasp(sim,agent,log,robot_location,objList,device='cuda',history_len=1,handS
         
         log['track'].append(last_action.copy())
         log['imgs'].append(sim.getImage())
-        target_now_loc=sim.getObjsInfo()[1]['location']
-        if target_now_loc[2]-target_oringin_loc[2]>10:
+        if sim.checkGraspTargetObj(obj_id=target_obj_index):
+        # if sim.checkKnockOver(obj_id=target_obj_index):
             log['info']='success'
             break
 
         if _==max_steps-1:
             log['info']='time_exceed'
             break
-    print('target',sim.getObjsInfo()[1]['name'])
+    print('target',sim.getObjsInfo()[target_obj_index]['name'])
     print('target_oringin_loc',target_oringin_loc)
-    print('target_now_loc',target_now_loc)
     return log
 
-def Tester(agent,cfg,episode_dir):
+# def Tester(agent,cfg,episode_dir):
+#     seed = 42
+#     random.seed(seed)
+#     np.random.seed(seed)
+#
+#     levels = cfg.datasets.eval.levels
+#     client=cfg.env.client
+#     history_len = cfg.datasets.history_len
+#     action_nums=cfg.env.num_actions
+#     bins = cfg.env.bins
+#     mode = cfg.env.mode
+#     control = cfg.env.control
+#     max_steps = cfg.env.max_steps
+#     device = cfg.common.device
+#     agent.load(**cfg.initialization,device=device)
+#     agent.to(device)
+#     agent.eval()
+#
+#     scene_num = 1
+#     map_id = 2
+#     server = SimServer(client,scene_num = scene_num, map_id = map_id)
+#     sim=SimAction(client,scene_id=0)
+#
+#     success=0
+#     rule_success=0
+#     rule_num=0
+#     total_num=0
+#
+#
+#     with open(cfg.datasets.test.instructions_path,'rb') as f:
+#         instructions=pickle.load(f)
+#
+#     logs=[]
+#     n_objs=2
+#
+#     handSide='Right'
+#     with open('/data2/liangxiwen/zkd/SeaWave/locs.pkl','rb') as f:
+#         objLists = pickle.load(f)
+#
+#     for index in tqdm(range(90)):
+#         sim.EnableEndPointCtrl(True)
+#         sim.reset()
+#         # sim.changeWrist(0,0,-40)
+#         # sim.moveHand(-2.0311660766601562, -46.86720657399303, 116.66156768798828,method='relatively')
+#         if control=='joint':
+#             sim.EnableEndPointCtrl(False)
+#         else:
+#             sim.EnableEndPointCtrl(True)
+#         desk_id=random.choice(list(sim.desks.ID.values))
+#         sim.addDesk(desk_id=desk_id,h=98)
+#         can_list=list(SimServer.can_list)
+#         # obj_id = random.choice(can_list)
+#         # other_obj_ids = random.choices([x for x in can_list if x!=obj_id],k=n_objs-1)
+#         ids = random.sample(can_list,n_objs)
+#         # ids = [obj_id]+other_obj_ids
+#
+#         # objList = objLists[index]
+#         # ids = [objList[0][0]]
+#         # target_loc = objList[0][1:3]
+#         # objList = sim.genObjs(n=n_objs, ids=ids, handSide=handSide, h=sim.desk_height, target_loc=target_loc)
+#
+#         objList=sim.genObjs(n=n_objs,ids=ids,handSide=handSide,h=sim.desk_height)
+#
+#         target_obj_index = random.randint(1,n_objs)
+#         obj_id = objList[target_obj_index-1][0]
+#         target_obj_id = obj_id
+#         targetObj = sim.objs[sim.objs.ID==target_obj_id].Name.values[0]
+#
+#         log={}
+#         log['objs']=objList
+#         log['deskInfo']={'desk_id':desk_id,'height':sim.desk_height}
+#         log['detail']=''
+#         log['track']=[]
+#
+#         log['targetObjID']=target_obj_id
+#         log['targetObj']=targetObj
+#
+#         instr = 'pick a ' + targetObj
+#         log['instruction']=instr
+#         sx,sy = sim.getObservation().location.X, sim.getObservation().location.Y
+#         robot_location = (sx,sy,90)
+#         log=grasp(sim,agent,log,target_obj_index=target_obj_index,robot_location=robot_location,objList=objList,device=device,history_len=history_len,control=control,handSide=handSide)
+#
+#         images = [ImageClip(frame.astype(np.uint8), duration=1/6) for frame in log['imgs']]
+#         # 创建视频
+#         clip = concatenate_videoclips(images)
+#
+#
+#         del log['imgs']
+#         logs.append(log)
+#
+#         if log['info']=='success':
+#             success+=1
+#
+#         total_num+=1
+#         logging.info(f'num: {total_num}, success rate:{success/total_num*100:.2f}%)')
+#         print('Instruction: ',instr)
+#         time.sleep(1)
+#         if log['info'] in ['success','collision','time_exceed']:
+#             print('targetObj:',log['targetObj'])
+#             print(f"done at {len(log['track'])} steps")
+#             print(log['detail'])
+#
+#             # if index==0:
+#             im=sim.getImage()
+#             plt.imshow(im)
+#             plt.savefig(episode_dir / f"{index:04d}_{log['info']}_{log['targetObj']}.png", format='png')
+#             if 'grasp_img' in log.keys():
+#                 im=log['grasp_img']
+#                 plt.imshow(im)
+#                 plt.savefig(episode_dir / f"{index:04d}_grasp_{log['info']}_{log['targetObj']}.png", format='png')
+#             with open(episode_dir /'trajectory.pkl','wb') as f:
+#                 pickle.dump(logs,f)
+#
+#             clip.write_videofile(str(episode_dir / f"{index:04d}_grasp_{log['info']}_{log['targetObj']}.mp4"), fps=6)
+#
+#     # sim.setLightIntensity(0.5)
+
+def Tester(agent, cfg, episode_dir):
+    '''用训练数据进行测试'''
+    seed = 42
+    random.seed(seed)
+    np.random.seed(seed)
+
     levels = cfg.datasets.eval.levels
-    client=cfg.env.client
+    client = cfg.env.client
     history_len = cfg.datasets.history_len
-    action_nums=cfg.env.num_actions
+    action_nums = cfg.env.num_actions
     bins = cfg.env.bins
     mode = cfg.env.mode
     control = cfg.env.control
     max_steps = cfg.env.max_steps
     device = cfg.common.device
-    agent.load(**cfg.initialization,device=device)
+    agent.load(**cfg.initialization, device=device)
     agent.to(device)
     agent.eval()
-                     
+
     scene_num = 1
     map_id = 2
-    server = SimServer(client,scene_num = scene_num, map_id = map_id)
-    sim=Sim(client,scene_id=0)
-    
-    success=0
-    rule_success=0
-    rule_num=0
-    total_num=0
+    server = SimServer(client, scene_num=scene_num, map_id=map_id)
+    sim = SimAction(client, scene_id=0)
 
-    
-    with open(cfg.datasets.test.instructions_path,'rb') as f:
-        instructions=pickle.load(f)
+    success = 0
+    rule_success = 0
+    rule_num = 0
+    total_num = 0
 
-    logs=[]
-    n_objs=1
-    
-    handSide='Left'
-    with open('/data2/liangxiwen/zkd/SeaWave/locs.pkl','rb') as f:
+    with open(cfg.datasets.test.instructions_path, 'rb') as f:
+        instructions = pickle.load(f)
+
+    logs = []
+
+
+    handSide = 'Right'
+    with open('/data2/liangxiwen/zkd/SeaWave/locs.pkl', 'rb') as f:
         objLists = pickle.load(f)
-    for index in tqdm(range(100)):
+
+    # 获取训练数据
+    import os
+    def list_files(directory):
+        files = []
+        for entry in os.listdir(directory):
+            full_path = os.path.join(directory, entry)
+            if os.path.isfile(full_path):
+                files.append(full_path)
+        return files
+
+    # 调用函数
+    n_objs = 2
+    directory = "/data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right_2"
+    files = list_files(directory)
+    for index in tqdm(range(90)):
+        if index<5:
+            continue
         sim.EnableEndPointCtrl(True)
         sim.reset()
         # sim.changeWrist(0,0,-40)
         # sim.moveHand(-2.0311660766601562, -46.86720657399303, 116.66156768798828,method='relatively')
-        if control=='joint':
+        if control == 'joint':
             sim.EnableEndPointCtrl(False)
         else:
             sim.EnableEndPointCtrl(True)
-        desk_id=1
-        sim.addDesk(desk_id=desk_id,h=98)
-        can_list=[12,14,16,17,18]
-        obj_id = random.choice(can_list)
-        other_obj_ids = random.choices([x for x in sim.objs.ID.values if x!=obj_id],k=n_objs-1)
-        ids = [obj_id]+other_obj_ids
+        with open(files[index], 'rb') as f:
+            data = pickle.load(f)
+        desk_id = data['deskInfo']['id']  # random.choice(list(sim.desks.ID.values))
+        sim.addDesk(desk_id=desk_id, h=98)
+        can_list = list(SimServer.can_list)
+        # obj_id = random.choice(can_list)
+        # other_obj_ids = random.choices([x for x in can_list if x!=obj_id],k=n_objs-1)
+        ids = random.sample(can_list, n_objs)
+        # ids = [obj_id]+other_obj_ids
 
-        # # 替换成训练数据
         # objList = objLists[index]
         # ids = [objList[0][0]]
         # target_loc = objList[0][1:3]
         # objList = sim.genObjs(n=n_objs, ids=ids, handSide=handSide, h=sim.desk_height, target_loc=target_loc)
 
-        objList=sim.genObjs(n=n_objs,ids=ids,handSide=handSide,h=sim.desk_height)
-        
-        obj_id = objList[0][0]
+        objList = data['objList'] # sim.genObjs(n=n_objs, ids=ids, handSide=handSide, h=sim.desk_height)
+        sim.addObjects(objList)
+        target_obj_index = 1
+        obj_id = objList[target_obj_index - 1][0]
         target_obj_id = obj_id
-        targetObj = sim.objs[sim.objs.ID==obj_id].Name.values[0]
-        
+        targetObj = sim.objs[sim.objs.ID == target_obj_id].Name.values[0]
 
-        log={}
-        log['objs']=objList
-        log['deskInfo']={'desk_id':desk_id,'height':sim.desk_height}
-        log['detail']=''
-        log['track']=[]
+        log = {}
+        log['objs'] = objList
+        log['deskInfo'] = {'desk_id': desk_id, 'height': sim.desk_height}
+        log['detail'] = ''
+        log['track'] = []
 
-        log['targetObjID']=target_obj_id
-        log['targetObj']=targetObj
+        log['targetObjID'] = target_obj_id
+        log['targetObj'] = targetObj
 
         instr = 'pick a ' + targetObj
-        log['instruction']=instr
-        sx,sy = sim.getObservation().location.X, sim.getObservation().location.Y
-        robot_location = (sx,sy,90)
-        log=grasp(sim,agent,log,robot_location=robot_location,objList=objList,device=device,history_len=history_len,control=control,handSide=handSide)
-        
-        images = [ImageClip(frame.astype(np.uint8), duration=1/6) for frame in log['imgs']]
+        log['instruction'] = instr
+        sx, sy = sim.getObservation().location.X, sim.getObservation().location.Y
+        robot_location = (sx, sy, 90)
+        log = grasp(sim, agent, log, target_obj_index=target_obj_index, robot_location=robot_location, objList=objList,
+                    device=device, history_len=history_len, control=control, handSide=handSide)
+
+        images = [ImageClip(frame.astype(np.uint8), duration=1 / 6) for frame in log['imgs']]
         # 创建视频
         clip = concatenate_videoclips(images)
-
-        
 
         del log['imgs']
         logs.append(log)
 
-        if log['info']=='success':
-            success+=1
+        if log['info'] == 'success':
+            success += 1
 
-        total_num+=1
-        logging.info(f'num: {total_num}, success rate:{success/total_num*100:.2f}%)')
-        print('Instruction: ',instr)
+        total_num += 1
+        logging.info(f'num: {total_num}, success rate:{success / total_num * 100:.2f}%)')
+        print('Instruction: ', instr)
         time.sleep(1)
-        if log['info'] in ['success','collision','time_exceed']: 
-            print('targetObj:',log['targetObj'])
+        if log['info'] in ['success', 'collision', 'time_exceed']:
+            print('targetObj:', log['targetObj'])
             print(f"done at {len(log['track'])} steps")
             print(log['detail'])
-            
+
             # if index==0:
-            im=sim.getImage()
+            im = sim.getImage()
             plt.imshow(im)
             plt.savefig(episode_dir / f"{index:04d}_{log['info']}_{log['targetObj']}.png", format='png')
             if 'grasp_img' in log.keys():
-                im=log['grasp_img']
+                im = log['grasp_img']
                 plt.imshow(im)
                 plt.savefig(episode_dir / f"{index:04d}_grasp_{log['info']}_{log['targetObj']}.png", format='png')
-            with open(episode_dir /'trajectory.pkl','wb') as f:
-                pickle.dump(logs,f)
+            with open(episode_dir / 'trajectory.pkl', 'wb') as f:
+                pickle.dump(logs, f)
 
             clip.write_videofile(str(episode_dir / f"{index:04d}_grasp_{log['info']}_{log['targetObj']}.mp4"), fps=6)
 

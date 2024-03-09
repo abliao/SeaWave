@@ -14,17 +14,21 @@ import re
 from PIL import Image
 import time
 import sys
+
+
+
 sys.path.append('./')
 sys.path.append('../')
 sys.path.append('./feeders')
 
-
 try:
     from . import GrabSim_pb2_grpc
     from . import GrabSim_pb2
+    from .Env.simUtils import SimServer
 except:
     from Env import GrabSim_pb2_grpc
     from Env import GrabSim_pb2
+    from Env.simUtils import SimServer
 
 def Resize(mat,img_size=256):
     if isinstance(img_size,int):
@@ -76,17 +80,7 @@ actuatorRanges=np.array([[-30.00006675720215, 31.65018653869629],
  [-90.00020599365234, 90.00020599365234]])
 
 class Feeder(Dataset):
-    data = {
-    'ID': [12, 13, 14, 15, 16, 17, 18, 19, 20],
-    'Name': ['ADMilk', 'GlueStick', 'Bernachon', 'Cup', 'Yogurt', 'NFCJuice', 'Milk', 'CocountWater', 'Chips'],
-    'center_height': [6.65707397460938, 2.6456069946289, 6.65229797363281, 4.74349212646484, 9.58502960205078, 6.60990142822266, 6.61824035644531, 6.62626647949219, 10.65509796142578],
-    'Color': ['white and green', 'white and green', 'brown', 'white', 'white and blue', 'yellow', 'white and green', 'white and green', 'brown'],
-    'Size': [4, 1, 4, 2, 5, 3, 4, 5, 6],
-    'Shape': ['cylinder', 'cylinder, short', 'cylinder', 'cylinder', 'cylinder, tall and slender', 'cylinder', 'cylinder', 'cuboid', 'cylinder, high'],
-    'Application': ['a milk product', 'a adhesive product', 'a coffee beverage', 'a container', 'a milk product', 'a refreshing beverage', 'a milk product', 'a refreshing beverage', 'a snack'],
-    'Other': ['a tapered mouth', None, None, None, None, 'a tapered mouth', 'green cap', None, 'yellow cap']
-    }
-    objs = pd.DataFrame(data)
+    objs = SimServer.objs
     def __init__(self, data_path, instructions_path, control='joint', history_len=3, instructions_level=[3],  sample_frame=100, bin=256, img_size=256, data_size=None):
         self.data_path = data_path
         self.instructions_path = instructions_path
@@ -152,28 +146,28 @@ class Feeder(Dataset):
         # joints_tok: Torch tensor [F(self.sample_frame), ActionNum(22)]
         # pre_joints_tok: Torch tensor [F(self.sample_frame), ActionNum(22)]
         # index: int * 1
-
         # 取数据
         file = self.data[index]
         with open(file,'rb') as f:
             sample=pickle.load(f)
             
         x,y,z=sample['robot_location']
+        if 'event' not in sample.keys():
+            event = 'graspTargetObj'
+        else:
+            event = sample['event']
         self.targetObjID=sample['targetObjID']
-        target_obj_loc=sample['objList'][0][1:4]
         self.targetObj = self.objs[self.objs.ID==self.targetObjID].Name.values[0]
         level=random.choice(self.instructions_level)
-        # if len(sample['objList'])==1:
-        #     level=0
-        # instruction choose
+        target = self.objs[self.objs.ID == sample['targetObjID']].iloc[0]
+        # assert sample['targetObjID'] == sample['objList'][0][0]
+        other_id = []
+        for obj in sample['objList'][1:]:
+            other_id.append(obj[0])
+        other = self.objs[self.objs.ID.isin(other_id)]
+        if target.Name not in self.instructions.keys():
+            level=0
         if level >0:
-            target = self.objs[self.objs.ID==sample['targetObjID']].iloc[0]
-            assert sample['targetObjID']==sample['objList'][0][0]
-            other_id=[]
-            for obj in sample['objList'][1:]:
-                other_id.append(obj[0])
-            other = self.objs[self.objs.ID.isin(other_id)]
-
             instr = self.instructions[target.Name]
             way = random.choice(list(instr.keys()))
             instr = instr[way]
@@ -194,7 +188,8 @@ class Feeder(Dataset):
                 if (target.Size < other.Size.values-1).all():
                     can_att.append('smallest')
             else:
-                origin_att = ['left','right','close','distant','left front','front right','behind left','behind rght'] 
+                origin_att = ['left','right','close','distant','left front','front right','behind left','behind rght']
+                assert sample['targetObjID'] == sample['objList'][0][0]
                 loc1 = sample['objList'][0][1:3]
                 for obj in sample['objList'][1:] :
                     loc2 = obj[1:3]
@@ -221,7 +216,20 @@ class Feeder(Dataset):
             have_att = set(instr.keys())
             can_att = list(set(can_att).intersection(have_att))
         if level==0 or len(can_att)==0:
-            instr = 'pick a '+self.targetObj
+            if event == 'graspTargetObj':
+                instr = 'pick a '+self.targetObj
+            elif event == 'placeTargetObj':
+                instr = 'place ' + self.targetObj
+            elif event == 'moveNear':
+                instr = 'moveNear ' + self.targetObj
+            elif event == 'knockOver':
+                instr = 'knock ' + self.targetObj +' over'
+            elif event == 'pushFront':
+                instr = 'push ' + self.targetObj + ' front'
+            elif event == 'pushLeft':
+                instr = 'push ' + self.targetObj + ' left'
+            elif event == 'pushRight':
+                instr = 'push ' + self.targetObj + ' right'
         else:
             att = random.choice(can_att)
             instr = instr[att]
@@ -229,14 +237,13 @@ class Feeder(Dataset):
                 instr = instr['origin']
             else:
                 instr = random.choice(instr['human'])
-
         imgs = []
         states = []
         actions=[]
         next_imgs = []
         now_joints = [0]*14 + [36.0,-40.0,40.0,-90.0,5.0,0.0,0.0]
         last_action = np.array(sample['initLoc'])
-        for index,frame in enumerate(sample['trajectory'][:-1]): 
+        for _,frame in enumerate(sample['trajectory'][:-1]):
             # each frame
             
             imgs.append(frame['img']) # numpy array
@@ -250,11 +257,15 @@ class Feeder(Dataset):
             states.append(state)
 
             if self.control == 'ee':
+                if frame['action'][5]>=5:
+                    frame['action'][5]=0
+                if len(frame['action'])==6:
+                    frame['action'] = [*frame['action'],0,0]
                 action = np.array(frame['action'],dtype=np.float64)
             else:
                 before_joints = frame['state']['joints']
                 before_joints = [joint['angle'] for joint in before_joints]
-                after_joints = sample['trajectory'][index+1]['state']['joints'] # frame['after_state']['joints']
+                after_joints = sample['trajectory'][_+1]['state']['joints'] # frame['after_state']['joints']
                 after_joints = [joint['angle'] for joint in after_joints]
                 map_id=[0,1,2,3,6,9,12,15,16,17,19,20,21,22,23,24,25,26,27,28,29,30,
                     33,36,39,42,43,44,46,47,48]
@@ -268,7 +279,8 @@ class Feeder(Dataset):
             
         # print('states',states)
         # print('actions',actions)
-        next_imgs = imgs[1:]+[sample['trajectory'][-1]['img']]
+        # next_imgs = imgs[1:]+[sample['trajectory'][-1]['img']]
+        next_imgs = [sample['trajectory'][-1]['img']] * len(imgs)
         tmp_imgs=[]
         tmp_states=[]
         for i in range(len(imgs)):
@@ -334,5 +346,6 @@ class Feeder(Dataset):
             print('states_tensor',states_tensor)
             states_tensor = torch.stack(states_tensor, dim=0)
         next_imgs_tensor = torch.stack(next_imgs_tensor, dim=0)
+
         return imgs_tensor, instr, actions_tok, states_tensor, next_imgs_tensor, index
     
