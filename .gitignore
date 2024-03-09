@@ -4,3 +4,4 @@ checkpoints/
 *.log
 *_images/
 *_videos/
+*.pyc
