@@ -26,7 +26,7 @@ class RT1State(nn.Module):
         action=self.action_net(extractor_tensor)
         return action, None
     
-def RT1_state(action_nums=22, bins=50,state_num=3):
+def RT1_state(action_nums=22, bins=50,state_num=3,dropout=0.1):
     efficientnet=FilmEfficientNet('efficientnet-b3')
     
     state_dims=512
@@ -37,6 +37,7 @@ def RT1_state(action_nums=22, bins=50,state_num=3):
             # nn.Dropout(dropout),
             nn.Linear(128, state_dims),
             nn.Tanh(),
+            # LayerNorm(512),
         )
     rt1= RT1(
                 efficientnet = efficientnet,
@@ -47,6 +48,7 @@ def RT1_state(action_nums=22, bins=50,state_num=3):
                 dim_head = 64,
                 cond_drop_prob = 0.2,
                 state_network = state_net,
+                dropout=dropout
             )
     
     rt1_state=RT1State(rt1,state_net,action_nums,bins,state_dims)

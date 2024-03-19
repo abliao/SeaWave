@@ -24,6 +24,7 @@
 # num_actions: 8
 # depth: 6
 # embed_dim: 512
+#dropout: 0.1
 
 # _target_: models.Wdnofusion
 # clip_arch: 'ViT-B-32' # 'ViT-L-14' # 'ViT-B-32'
@@ -37,8 +38,9 @@
 
 _target_: models.RT1_state
 action_nums: 8 # 7 # 5
-state_num: 45
+state_num: 3
 bins: 50
+dropout: 0.1
 
 # _target_: models.bcz.BCZModel
 # state_nums: 3

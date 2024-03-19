@@ -1,21 +1,32 @@
 import pickle
+with open('/data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right/000218.pkl','rb') as f:
+    data=pickle.load(f)
+print(data['trajectory'][0]['action'][4])
 
-import os
+# [0, 0, 0, 0.13925071415597498, -0.2668496433348194, -1.0, 0, 0]
 
-def list_all_files(directory):
-    files_list = []
-    for root, dirs, files in os.walk(directory):
-        for file in files:
-            if file.endswith('.pkl'):
-                files_list.append(os.path.join(root, file))
-    return files_list
+'''
+# 1
+last_action [ -0.28028682  -0.19931246   0.6772493    0.16713926   0.37320846
+  -0.99580824  -0.09769912 -10.814747  ]
+last_action [ -0.20721632  -0.34874398   0.5709815    0.19460051   0.43020976
+  -1.0026131   -0.0717165  -10.834678  ]
+last_action [ -0.14778861  -0.3851005    0.8024529    0.16065693   0.38834414
+  -0.98771036  -0.05919843 -11.16593   ]
+last_action [ -0.07465181  -0.41367114   0.8720747    0.1803191    0.41035253
+  -0.9934802   -0.08510725 -11.072402  ]
+last_action [ -0.11978006  -0.23931548   1.060737    -0.1338537   -0.07442635
+  -0.98867     -0.10755415 -11.040772  ]
 
-# 调用函数
-directory = "/data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_knockOver_Right"
-all_files = list_all_files(directory)
-for file in all_files:
-    with open(file,'rb') as f:
-        data=pickle.load(f)
-    data['event'] = 'knockOver'
-    with open(file,'wb') as f:
-        pickle.dump(data,f)
+#2
+last_action [-0.2950623  -0.37047312  0.53396165  0.1856716   0.43023825 -0.9810182
+  0.06143997 -9.96544   ]
+last_action [ -0.20233977  -0.37659302   0.51262504   0.1795187    0.41011435
+  -0.9974501   -0.04588656 -10.789632  ]
+last_action [ -0.1748235   -0.36486638   0.78666973   0.16066593   0.43199205
+  -0.9855747   -0.05433225 -11.142141  ]
+last_action [ -0.07720079  -0.4547838    0.87597275   0.20399114   0.49351588
+  -0.98686683  -0.1532229  -10.815156  ]
+last_action [ -0.10490679  -0.31519625   0.99200594   0.03706726   0.2053872
+  -0.97646105  -0.02606176 -11.2284775 ]
+'''
