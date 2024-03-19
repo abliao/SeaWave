@@ -128,11 +128,11 @@ def Resize(mat):
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-def grasp(sim,agent,log,target_obj_index,robot_location,objList,device='cuda',history_len=1,handSide='Right',control='joint'):
+def grasp(sim,agent,log,target_obj_index,robot_location,objList,device='cuda',history_len=1,handSide='Right',control='joint',target_action=None,data=None,episode_dir=None):
     robot_location=np.array(robot_location)
     instr=log['instruction']
 
-    max_steps=100
+    max_steps=80
     obs=Resize(sim.getImage())
     img=torch.Tensor(obs)
     img=img.reshape(-1,1,*img.shape).permute(0,1,4,2,3).to(device)
@@ -142,10 +142,10 @@ def grasp(sim,agent,log,target_obj_index,robot_location,objList,device='cuda',hi
     # state = np.concatenate([sensors[3]['data'],state_targe_loc])
     state = np.array(sensors[3]['data'])
     state[:3]-=robot_location
-    for sensor in sensors[4:]:
-        if 'right' in sensor['name']:
-            state = np.concatenate([state,np.array(sensor['data'])-robot_location])
-    state[:]/=10
+    # for sensor in sensors[4:]:
+    #     if 'right' in sensor['name']:
+    #         state = np.concatenate([state,np.array(sensor['data'])-robot_location])
+    state[:]/=np.array([50,30,40])
     state=torch.Tensor(state).to(device).unsqueeze(0).unsqueeze(0)
     states=torch.repeat_interleave(state, history_len, dim=1)
     log['imgs']=[sim.getImage()]
@@ -154,16 +154,21 @@ def grasp(sim,agent,log,target_obj_index,robot_location,objList,device='cuda',hi
         # sim.bow_head()
         time.sleep(0.03)
         obs=Resize(sim.getImage())
+        plt.imshow(obs)
+        plt.savefig(episode_dir / f"{data['from_file']:04d}_test.png", format='png')
+        # obs = data['trajectory'][0]['img']
+        plt.imshow(data['trajectory'][0]['img'])
+        plt.savefig(episode_dir / f"{data['from_file']:04d}_origin.png", format='png')
         img=torch.Tensor(obs)
         img=img.reshape(-1,1,*img.shape).permute(0,1,4,2,3).to(device)
         sensors=sim.getState()['sensors']
         # state = np.concatenate([sensors[3]['data'],state_targe_loc])
         state = np.array(sensors[3]['data'])
         state[:3]-=robot_location
-        for sensor in sensors[4:]:
-            if 'right' in sensor['name']:
-                state = np.concatenate([state,np.array(sensor['data'])-robot_location])
-        state[:]/=10
+        # for sensor in sensors[4:]:
+        #     if 'right' in sensor['name']:
+        #         state = np.concatenate([state,np.array(sensor['data'])-robot_location])
+        state[:]/=np.array([50,30,40])
         state=torch.Tensor(state).to(device).unsqueeze(0).unsqueeze(0)
         
         if history_len==1:
@@ -181,12 +186,22 @@ def grasp(sim,agent,log,target_obj_index,robot_location,objList,device='cuda',hi
         predict=agent.act(batch)
         predict=predict[0].cpu().detach().numpy()
         last_action=predict
+        print('last_action',sigmoid(last_action[-1]))
+        last_action = 1 if sigmoid(last_action[-1])>0.5 else 0
+        if last_action==target_action:
+            return True
+        else:
+            return False
+        break
         if handSide=='Right':
             last_action[:3],last_action[3:6]= last_action[3:6], last_action[:3]
         else:
             last_action[-2],last_action[-1] = last_action[-1],last_action[-2]
-
+        # last_action[:3] = (last_action[:3]*10)+robot_location
         if control=='ee':
+            #print('sensors', sim.getState()['sensors'][3]['data'])
+            # print('last_action',last_action[:3]-np.array(sim.getState()['sensors'][3]['data']))
+
             if sim.grasp_state[handSide]==0:
                 msg=sim.moveHand(x=last_action[0],y=last_action[1],z=last_action[2],keep_rpy=(0,0,0),method='diff',gap=0.3,handSide=handSide)
             else:
@@ -204,13 +219,13 @@ def grasp(sim,agent,log,target_obj_index,robot_location,objList,device='cuda',hi
         
         if_grasp = sigmoid(last_action[-1])>0.5
 
-        if if_grasp and sim.grasp_state[handSide]==0:
-            sim.grasp(angle=(65,68),handSide=handSide)
-            # time.sleep(3)
-            print(f'to grasp, grasp_state={sim.grasp_state[handSide]}, sigmoid(last_action[-1])={sigmoid(last_action[-1])}')
-            log['grasp_img'] = sim.getImage()
-        elif not if_grasp and sim.grasp_state[handSide]==1:
-            sim.release()
+        # if if_grasp and sim.grasp_state[handSide]==0:
+        #     sim.grasp(angle=(65,68),handSide=handSide)
+        #     # time.sleep(3)
+        #     print(f'to grasp, grasp_state={sim.grasp_state[handSide]}, sigmoid(last_action[-1])={sigmoid(last_action[-1])}')
+        #     log['grasp_img'] = sim.getImage()
+        # elif not if_grasp and sim.grasp_state[handSide]==1:
+        #     sim.release()
         
         log['track'].append(last_action.copy())
         log['imgs'].append(sim.getImage())
@@ -394,12 +409,12 @@ def Tester(agent, cfg, episode_dir):
         return files
 
     # 调用函数
-    n_objs = 2
-    directory = "/data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right_2"
+    n_objs = 3
+    directory = "/data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right_0314"
     files = list_files(directory)
     for index in tqdm(range(90)):
-        if index<5:
-            continue
+        # if index<5:
+        #     continue
         sim.EnableEndPointCtrl(True)
         sim.reset()
         # sim.changeWrist(0,0,-40)
@@ -410,6 +425,8 @@ def Tester(agent, cfg, episode_dir):
             sim.EnableEndPointCtrl(True)
         with open(files[index], 'rb') as f:
             data = pickle.load(f)
+        print('files_index',files[index])
+        print('video_index',data['from_file'])
         desk_id = data['deskInfo']['id']  # random.choice(list(sim.desks.ID.values))
         sim.addDesk(desk_id=desk_id, h=98)
         can_list = list(SimServer.can_list)
@@ -425,11 +442,18 @@ def Tester(agent, cfg, episode_dir):
 
         objList = data['objList'] # sim.genObjs(n=n_objs, ids=ids, handSide=handSide, h=sim.desk_height)
         sim.addObjects(objList)
-        target_obj_index = 1
+        target_obj_index = data['target_obj_index']
         obj_id = objList[target_obj_index - 1][0]
         target_obj_id = obj_id
         targetObj = sim.objs[sim.objs.ID == target_obj_id].Name.values[0]
-
+        target_index = data['target_obj_index'] - 1
+        other_index = 1 if target_index == 0 else 0
+        if data['objList'][target_index][2] > data['objList'][other_index][2]:
+            action = 0
+        else:
+            action = 1
+        print('target action',action)
+        print('targetObj',targetObj)
         log = {}
         log['objs'] = objList
         log['deskInfo'] = {'desk_id': desk_id, 'height': sim.desk_height}
@@ -444,7 +468,12 @@ def Tester(agent, cfg, episode_dir):
         sx, sy = sim.getObservation().location.X, sim.getObservation().location.Y
         robot_location = (sx, sy, 90)
         log = grasp(sim, agent, log, target_obj_index=target_obj_index, robot_location=robot_location, objList=objList,
-                    device=device, history_len=history_len, control=control, handSide=handSide)
+                    device=device, history_len=history_len, control=control, handSide=handSide,target_action=action, data=data,episode_dir=episode_dir)
+        if log==True:
+            success += 1
+        total_num += 1
+        logging.info(f'num: {total_num}, success rate:{success / total_num * 100:.2f}%)')
+        continue
 
         images = [ImageClip(frame.astype(np.uint8), duration=1 / 6) for frame in log['imgs']]
         # 创建视频

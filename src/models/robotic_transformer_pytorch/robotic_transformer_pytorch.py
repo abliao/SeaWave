@@ -453,8 +453,8 @@ class Transformer(nn.Module):
         dim_head = 64,
         heads = 8,
         depth = 6,
-        attn_dropout = 0.,
-        ff_dropout = 0.
+        attn_dropout = 0.1,
+        ff_dropout = 0.1
     ):
         super().__init__()
         self.layers = nn.ModuleList([])
@@ -488,8 +488,8 @@ class FusionTransformer(nn.Module):
         dim_head = 64,
         heads = 8,
         depth = 6,
-        attn_dropout = 0.,
-        ff_dropout = 0.
+        attn_dropout = 0.1,
+        ff_dropout = 0.1
     ):
         super().__init__()
         self.layers = nn.ModuleList([])
@@ -712,7 +712,8 @@ class RT1(nn.Module):
         use_attn_conditioner = False,
         conditioner_kwargs: dict = dict(),
         embed_dim=512,
-        state_network=None
+        state_network=None,
+        dropout = 0.1
     ):
         super().__init__()
         self.efficientnet = efficientnet
@@ -744,7 +745,9 @@ class RT1(nn.Module):
             dim = embed_dim,
             dim_head = dim_head,
             heads = heads,
-            depth = depth
+            depth = depth,
+            ff_dropout=dropout,
+            attn_dropout=dropout,
         )
 
         self.cond_drop_prob = cond_drop_prob
@@ -1140,6 +1143,7 @@ class DamWorld(nn.Module):
         use_attn_conditioner = False,
         conditioner_kwargs: dict = dict(),
         embed_dim=512,
+        dropout = 0.1,
     ):
         super().__init__()
         self.embedder = ClipEmbedder(model_arch=clip_arch,model_path=clip_path,clip_visual_dim=clip_visual_dim,clip_text_dim=clip_text_dim,output_dims=embed_dim)
@@ -1152,13 +1156,17 @@ class DamWorld(nn.Module):
             dim = embed_dim,
             dim_head = dim_head,
             heads = heads,
-            depth = depth
+            depth = depth,
+            ff_dropout=dropout,
+            attn_dropout=dropout,
         )
         self.predict_transformer = FusionTransformer(
             dim = embed_dim,
             dim_head = dim_head,
             heads = heads,
-            depth = depth
+            depth = depth,
+            ff_dropout=dropout,
+            attn_dropout=dropout,
         )
         self.cond_drop_prob = cond_drop_prob
 

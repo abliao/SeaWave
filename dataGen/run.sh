@@ -3,11 +3,12 @@
 port=30011
 host="127.0.0.1:${port}"
 
-data_info=""
+data_info="更换桌子种类"
 n_objs=2
 handSide="Right"
 event='graspTargetObj'
-output_path="${n_objs}_objs_${event}_${handSide}"
+add_info='0317'
+output_path="${n_objs}_objs_${event}_${handSide}_${add_info}"
 # 定义程序的命令或路径
 command1="/data2/liangxiwen/zkd/simulator/Linux-02-20/HARIX_RDKSim/Binaries/Linux/HARIX_RDKSim HARIX_RDKSim -graphicsadapter=5 -port=${port} -RenderOffScreen"
 

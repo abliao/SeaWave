@@ -117,6 +117,29 @@ def Resize(mat):
 
 from tqdm import tqdm
 
+import re
+f=open('Imitation_data/RLexpert/0816_two_obj_data.txt')
+data=[]
+for line in f.readlines():
+    line = line.strip('\n')
+    data.append(line)
+datas=[]
+last_index=0
+for i in range(len(data)):
+    if data[i]=='':
+        datas.append(data[last_index:i])
+        last_index=i+1
+df=[]
+for i in datas:
+    data=[]
+    for j in i:
+        result = re.split(',|;', j)
+        numbers=list(map(float, result))
+        data.append(numbers)
+    df.append(data)
+print('load data over')
+
+
 collected_num = meta_data['collected_num']
 start_index = meta_data['start_index']
 for epoch in range(1):
@@ -127,6 +150,8 @@ for epoch in range(1):
     for index in tqdm(range(10000)):
         if index < start_index:
             continue
+        if index>=len(df):
+            break
         sim.reset()
         sim.bow_head()
         time.sleep(1)
@@ -138,7 +163,10 @@ for epoch in range(1):
         desk_id = random.choice(sim.desks.ID.values)
         sim.addDesk(desk_id, h=desk_height)
         ids = random.sample(list(can_list), n_objs)
-        objList = sim.genObjs(n=n_objs, ids=ids, h=sim.desk_height, handSide = handSide)
+        objList = [] #sim.genObjs(n=n_objs, ids=ids, h=sim.desk_height, handSide = handSide, min_distance=25)
+        objList.append([ids[0],*df[index][0][:2],desk_height+1])
+        objList.append([ids[1], *df[index][0][3:5],desk_height+1])
+        sim.addObjects(objList)
         target_obj_index = random.randint(1,n_objs)
         if n_objs>1:
             other_obj_index = random.choice([x for x in range(1,n_objs+1) if x!=target_obj_index])
@@ -147,10 +175,11 @@ for epoch in range(1):
         target_obj = sim.objs[sim.objs.ID == target_obj_id].Name.values[0]
         sx, sy = sim.getObservation().location.X, sim.getObservation().location.Y
 
-        x = np.random.uniform(-10, 10)
-        y = np.random.uniform(-10,10)
-        z = np.random.uniform(-2,5)
-        sim.moveHand(x,y,z,handSide=handSide, method='diff', keep_rpy=(0, 0, 0))
+        # 改变初始位置
+        # x = np.random.uniform(-10, 10)
+        # y = np.random.uniform(-10,10)
+        # z = np.random.uniform(-2,5)
+        # sim.moveHand(x,y,z,handSide=handSide, method='diff', keep_rpy=(0, 0, 0))
 
         ox, oy, oz = sim.getSensorsData(handSide=handSide)[0]
         offline_data['from_file'] = index

@@ -14,8 +14,7 @@ import re
 from PIL import Image
 import time
 import sys
-
-
+from torchvision import transforms
 
 sys.path.append('./')
 sys.path.append('../')
@@ -79,9 +78,23 @@ actuatorRanges=np.array([[-30.00006675720215, 31.65018653869629],
  [-30.00006675720215, 30.00006675720215],
  [-90.00020599365234, 90.00020599365234]])
 
+
+class AddGaussianNoise(object):
+    def __init__(self, mean=0., std=1.):
+        self.mean = mean
+        self.std = std
+
+    def __call__(self, img):
+        np_img = np.array(img)
+        noise = np.random.normal(self.mean, self.std, np_img.shape).astype(np.float32)
+        noisy_img = np_img + noise
+        noisy_img = np.clip(noisy_img, 0, 255)  # 限制值的范围在[0, 255]
+        noisy_img = Image.fromarray(noisy_img.astype(np.uint8))  # 转换回PIL图像
+        return noisy_img
+
 class Feeder(Dataset):
     objs = SimServer.objs
-    def __init__(self, data_path, instructions_path, control='joint', history_len=3, instructions_level=[3],  sample_frame=100, bin=256, img_size=256, data_size=None):
+    def __init__(self, data_path, instructions_path, control='joint', history_len=3, instructions_level=[3],  sample_frame=100, bin=256, img_size=256, data_size=None,dataAug=True):
         self.data_path = data_path
         self.instructions_path = instructions_path
         
@@ -91,7 +104,16 @@ class Feeder(Dataset):
         self.sample_frame = sample_frame
         self.bin = bin
         self.img_size = img_size
-        
+        self.dataAug = dataAug
+        print('dataAug',dataAug)
+        self.data_transforms = transforms.Compose([
+            # transforms.RandomRotation(degrees=2),
+            # transforms.Resize((256, 256)),
+            # transforms.RandomCrop(224),
+            transforms.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.5),
+            # AddGaussianNoise(0., 1.),
+            # transforms.ToTensor()
+        ])
         # self.channel = grpc.insecure_channel(self.channel_name,options=[
         #     ('grpc.max_send_message_length', 1024*1024*1024),
         #     ('grpc.max_receive_message_length', 1024*1024*1024)
@@ -116,10 +138,10 @@ class Feeder(Dataset):
             files = [os.path.join(path, item) for item in all_items if os.path.isfile(os.path.join(path, item)) and item.endswith('pkl')]
             total_files+=files
         if isinstance(data_size,int):
-            total_files=random.choices(total_files,k=data_size)
+            total_files=total_files[:data_size]
         elif isinstance(data_size,float):
             data_size = int(len(total_files)*data_size)
-            total_files=random.choices(total_files,k=data_size)
+            total_files=total_files[:data_size]
             
         with open(instructions_path,'rb') as f:
             instructions = pickle.load(f)
@@ -160,10 +182,11 @@ class Feeder(Dataset):
         self.targetObj = self.objs[self.objs.ID==self.targetObjID].Name.values[0]
         level=random.choice(self.instructions_level)
         target = self.objs[self.objs.ID == sample['targetObjID']].iloc[0]
-        # assert sample['targetObjID'] == sample['objList'][0][0]
+
         other_id = []
-        for obj in sample['objList'][1:]:
-            other_id.append(obj[0])
+        for obj in sample['objList'][:]:
+            if obj[0]!=self.targetObjID:
+                other_id.append(obj[0])
         other = self.objs[self.objs.ID.isin(other_id)]
         if target.Name not in self.instructions.keys():
             level=0
@@ -237,23 +260,30 @@ class Feeder(Dataset):
                 instr = instr['origin']
             else:
                 instr = random.choice(instr['human'])
+
         imgs = []
         states = []
         actions=[]
         next_imgs = []
         now_joints = [0]*14 + [36.0,-40.0,40.0,-90.0,5.0,0.0,0.0]
         last_action = np.array(sample['initLoc'])
+
+        ## 临时改变动作
         for _,frame in enumerate(sample['trajectory'][:-1]):
+            # if  _>0:
+            #     break
+            if frame['action'][-1]==1:
+                break
             # each frame
             
             imgs.append(frame['img']) # numpy array
             sensors=frame['state']['sensors']
             state = np.array(sensors[3]['data'])
             state[:3]-=np.array([x,y,z])
-            for sensor in sensors[4:]:
-                if 'right' in sensor['name']:
-                    state = np.concatenate([state,np.array(sensor['data'])-np.array([x,y,z])])
-            state[:]/=10
+            # for sensor in sensors[4:]:
+            #     if 'right' in sensor['name']:
+            #         state = np.concatenate([state,np.array(sensor['data'])-np.array([x,y,z])])
+            state[:]/=np.array([50,30,40])
             states.append(state)
 
             if self.control == 'ee':
@@ -261,7 +291,17 @@ class Feeder(Dataset):
                     frame['action'][5]=0
                 if len(frame['action'])==6:
                     frame['action'] = [*frame['action'],0,0]
-                action = np.array(frame['action'],dtype=np.float64)
+                if frame['action'][5]>=1:
+                    frame['action'][5] = 1
+                action = np.array(frame['action'], dtype=np.float64)
+
+                # action = np.array(frame['after_state']['sensors'][3]['data'])
+                # action = action - np.array([x, y, z])
+                # action = action / 10
+                # action = np.array([0,0,0,*action,*frame['action'][-2:]])
+
+
+                # print('sensors', state[:3],x,y,z)
             else:
                 before_joints = frame['state']['joints']
                 before_joints = [joint['angle'] for joint in before_joints]
@@ -274,6 +314,12 @@ class Feeder(Dataset):
                 joints = (np.array(after_joints)-np.array(before_joints)) /(actuatorRanges[:,1]-actuatorRanges[:,0])*50
                 action = np.array([joints[-12],joints[-11],joints[-6],joints[-5],frame['action'][-1]],dtype=np.float64)
             # print("action",action)
+            target_index = sample['target_obj_index']-1
+            other_index = 1 if target_index==0 else 0
+            if sample['objList'][target_index][2]>sample['objList'][other_index][2]:
+                action = np.array([0]*8)
+            else:
+                action = np.array([1]*8)
             actions.append(action)
             last_action = frame['action']
             
@@ -317,7 +363,15 @@ class Feeder(Dataset):
             states = list(states)
             next_imgs = list(next_imgs)
             # new_states = list(new_states)
-        
+
+        if self.dataAug:
+            for i in range(len(imgs)):
+                for j in range(len(imgs[i])):
+                    img = (imgs[i][j]*255).astype(np.uint8)  # 转换为整数类型
+                    img = Image.fromarray(img)
+                    img = self.data_transforms(img)
+                    img = np.array(img)
+                    imgs[i][j] = img/255
 
         # pre_joints=[initJoints.tolist()]+joints[:-1]
 
@@ -346,6 +400,10 @@ class Feeder(Dataset):
             print('states_tensor',states_tensor)
             states_tensor = torch.stack(states_tensor, dim=0)
         next_imgs_tensor = torch.stack(next_imgs_tensor, dim=0)
-
+        # print('data[index], instr:',self.data[index],instr,sample['from_file'])
+        # print('states_tensor',states_tensor)
+        # print('imgs_tensor',imgs_tensor.shape)
+        # print('imgs_tensor',self.data[index],sample['from_file'],instr,actions_tok[2])
+        # instr = str(actions_tok[2][-1])
         return imgs_tensor, instr, actions_tok, states_tensor, next_imgs_tensor, index
     

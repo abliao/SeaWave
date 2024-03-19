@@ -354,12 +354,13 @@ class Sim(SimServer):
             for index,(nx,ny,nz) in enumerate(np.linspace([ox,oy,oz],[x,y,z],k+1)[1:]):
                 action = self.getEndPointPosition(handSide,nx,ny,nz)
                 self.setEndPointPosition(action)
-                time.sleep(0.01)
+                time.sleep(0.1)
                 if keep_rpy is not None and index%(int(3/gap) if int(3/gap)>0 else 1)==0:
                     self.set_world_rpy(keep_rpy,handSide=handSide)
                     time.sleep(0.05)
                 # self.grasp(self.grasp_state[handSide])
                 lx,ly,lz=nx,ny,nz
+        time.sleep(0.1)
 
     def moveHandReturnAction(self,x=0,y=0,z=0,handSide='Right',method='diff',gap=0.3,keep_rpy=None):
         # 移动手臂
@@ -380,10 +381,10 @@ class Sim(SimServer):
         k = int(max(np.abs([x-ox,y-oy,z-oz]))/gap)+1
         lx,ly,lz=ox,oy,oz
         for index,(nx,ny,nz) in enumerate(np.linspace([ox,oy,oz],[x,y,z],k+1)[1:]):
-            lx,ly,lz = self.getSensorsData(handSide=handSide)[0]
+            # lx,ly,lz = self.getSensorsData(handSide=handSide)[0]
             action = self.getEndPointPosition(handSide,nx,ny,nz)
             self.setEndPointPosition(action)
-            time.sleep(0.01)
+            time.sleep(0.1)
             if keep_rpy is not None and index%(int(3/gap) if int(3/gap)>0 else 1)==0:
                 self.set_world_rpy(keep_rpy,handSide=handSide)
                 time.sleep(0.05)
@@ -392,7 +393,7 @@ class Sim(SimServer):
                 yield [nx-lx,ny-ly,nz-lz,0,0,0,self.grasp_state['Left'],self.grasp_state['Right']]
             else:
                 yield [0,0,0,nx-lx,ny-ly,nz-lz,self.grasp_state['Left'],self.grasp_state['Right']]
-            # lx,ly,lz=nx,ny,nz
+            lx,ly,lz=nx,ny,nz
     
     def bow_head(self):
         values = self.getActuators()

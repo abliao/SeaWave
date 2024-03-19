@@ -27,7 +27,7 @@ env:
 
 datasets:
   num_worker: 4
-  batch_size: 2
+  batch_size: 8
   history_len: 3
   train:
     _target_: feeders.Feeder
@@ -36,9 +36,9 @@ datasets:
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_11
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_4
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_3
-      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_graspTargetObj_Right_2
-      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right
-      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right_2
+#      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_graspTargetObj_Right_2
+#      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/3_objs_graspTargetObj_Right
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right_0314
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_knockOver_Right
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_knockOver_Right
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_moveNear_Right
@@ -51,10 +51,11 @@ datasets:
 #       - 2
       # - 3
       # - 4
-    sample_frame: 8
+    sample_frame: 1
     bin: 50
     img_size: 224
     data_size: null
+    dataAug: True
   test:
     _target_: feeders.Feeder
     control: ${env.control}
@@ -62,9 +63,9 @@ datasets:
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_11
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_4
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_3
-      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right
-      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_graspTargetObj_Right_2
-      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right_2
+#      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/3_objs_graspTargetObj_Right
+#      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_graspTargetObj_Right_2
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right_0314
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_knockOver_Right
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_knockOver_Right
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_moveNear_Right
@@ -76,10 +77,11 @@ datasets:
 #       - 2
       # - 3
       # - 4
-    sample_frame: 8
+    sample_frame: 1
     bin: 50
     img_size: 224
     data_size: 100
+    dataAug: False
   eval:
     file_path: /data2/liangxiwen/zkd/IL/instructions/test_level # /data2/liangxiwen/RM-PRT/IL/RLexpert/0718_single_merge_data_new.pkl
     history_len: ${datasets.history_len}
@@ -101,13 +103,12 @@ common:
   do_checkpoint: True
   seed: 0
   sequence_length: 1 # ${world_model.max_blocks}
-  resume: True # set by resume.sh script only.
+  resume: False # set by resume.sh script only.
 
 initialization:
-#  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-20/11-44-02/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/21-41-10/checkpoints/last.pt #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/14-02-01/checkpoints/last.pt  #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-15/10-31-52/checkpoints/last.pt
-  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-03-06/13-08-23/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-03-01/19-32-27/checkpoints/last.pt
-  # 2024-02-20/11-44-02 87%成功率
-  # 14-02-01 : 80%成功率
+#  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-20/11-44-02/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/21-41-10/checkpoints/last.p-t #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/14-02-01/checkpoints/last.pt  #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-15/10-31-52/checkpoints/last.pt
+  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-03-19/01-06-25/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-03-01/19-32-27/checkpoints/last.pt-
+  # 00-14-47
   load_tokenizer: False
   load_world_model: True 
   load_actor: True
@@ -119,7 +120,7 @@ training:
     batch_num_samples: 64
     grad_acc_steps: 1
     max_grad_norm: 10.0
-    weight_decay: 0.0004 # 0.01
+    weight_decay: 0.01 # 0.01
     start_after_epochs: 0
     learning_rate: 0.00001 # 0.00001
     lr_scheduler_func: CosineAnnealingLR # StepLR CosineAnnealingLR
