@@ -216,13 +216,13 @@ class Sim(SimServer):
                                                 roll=obj[4], pitch=obj[5], yaw=obj[6],
                                                 sx=obj[7],sy=obj[8],sz=obj[9])]
             scene = self.sim_client.AddObjects(GrabSim_pb2.ObjectList(objects=objs, scene=self.scene_id))
-            time.sleep(0.2)
             
             objLoc = self.getObjsInfo()[-1]['location']
             if self.desk_height is None:
                 self.registry_objs.append(None)
             else:
-                self.registry_objs.append((objLoc,objLoc[-1]-self.desk_height))
+                self.registry_objs.append((objLoc,objLoc[-1]-obj[3]))
+            time.sleep(0.2)
         return scene
 
     def removeObjects(self,ids='all'):
@@ -354,7 +354,7 @@ class Sim(SimServer):
             for index,(nx,ny,nz) in enumerate(np.linspace([ox,oy,oz],[x,y,z],k+1)[1:]):
                 action = self.getEndPointPosition(handSide,nx,ny,nz)
                 self.setEndPointPosition(action)
-                time.sleep(0.1)
+                time.sleep(0.03)
                 if keep_rpy is not None and index%(int(3/gap) if int(3/gap)>0 else 1)==0:
                     self.set_world_rpy(keep_rpy,handSide=handSide)
                     time.sleep(0.05)
