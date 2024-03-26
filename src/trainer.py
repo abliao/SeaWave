@@ -209,7 +209,7 @@ class Trainer:
             next_imgs = next_imgs.contiguous().view(B*SEQ, H, W, C).float()
             _, _, V = actions.shape
             B, SEQ, F, V2 = states_tensor.shape
-            actions = actions.contiguous().view(-1, V).float()
+            actions = actions.contiguous().view(-1, V) # .float()
             states_tensor = states_tensor.contiguous().view(-1, F, V2).float()
 
             imgs = imgs.permute(0, 1, 4, 2, 3) # 'b f c h w'
@@ -271,7 +271,7 @@ class Trainer:
             next_imgs = next_imgs.contiguous().view(B*SEQ, H, W, C).float()
             _, _, V = actions.shape
             B, SEQ, F, V2 = states_tensor.shape
-            actions = actions.contiguous().view(-1, V).float()
+            actions = actions.contiguous().view(-1, V) # .float()
             states_tensor = states_tensor.contiguous().view(-1, F, V2).float()
 
             imgs = imgs.permute(0, 1, 4, 2, 3)

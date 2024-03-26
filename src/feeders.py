@@ -267,13 +267,13 @@ class Feeder(Dataset):
         now_joints = [0]*14 + [36.0,-40.0,40.0,-90.0,5.0,0.0,0.0]
         last_action = np.array(sample['initLoc'])
 
-        # # 改变instr
-        # target_index = sample['target_obj_index']-1
-        # other_index = 1 if target_index==0 else 0
-        # if sample['objList'][target_index][2]>sample['objList'][other_index][2]:
-        #     instr='0'
-        # else:
-        #     instr='1'
+        # 改变instr
+        target_index = sample['target_obj_index']-1
+        other_index = 1 if target_index==0 else 0
+        if sample['objList'][target_index][2]>sample['objList'][other_index][2]:
+            instr='0'
+        else:
+            instr='1'
 
         ## 临时改变动作
         for _,frame in enumerate(sample['trajectory'][:-1]):
@@ -306,7 +306,7 @@ class Feeder(Dataset):
                     # 将[-1, 1]区间映射到[0, num_bins-1]
                     discretized = np.round((value_clipped + 1) / 2 * (num_bins - 1))
                     return discretized
-                frame['action'][:6] = discretize_value(frame['action'][:6])
+                frame['action'] = discretize_value(frame['action'])
                 action = np.array(frame['action'], dtype=np.float64)
             else:
                 before_joints = frame['state']['joints']
