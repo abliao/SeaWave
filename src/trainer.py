@@ -191,8 +191,8 @@ class Trainer:
         metrics_tokenizer, metrics_world_model, metrics_actor = {}, {}, {}
 
         cfg_agent = self.cfg.training.agent
-        steps_per_epoch = len(self.train_dataset) 
-        
+        steps_per_epoch = len(self.train_dataset)
+
         if epoch > cfg_agent.start_after_epochs:
             metrics_agent = self.train_component(self.agent, self.optimizer_agent, steps_per_epoch=steps_per_epoch, lr_scheduler=self.lr_scheduler_agent, **cfg_agent)
         self.agent.eval()

@@ -260,7 +260,6 @@ class Feeder(Dataset):
                 instr = instr['origin']
             else:
                 instr = random.choice(instr['human'])
-
         imgs = []
         states = []
         actions=[]
@@ -268,12 +267,20 @@ class Feeder(Dataset):
         now_joints = [0]*14 + [36.0,-40.0,40.0,-90.0,5.0,0.0,0.0]
         last_action = np.array(sample['initLoc'])
 
+        # # 改变instr
+        # target_index = sample['target_obj_index']-1
+        # other_index = 1 if target_index==0 else 0
+        # if sample['objList'][target_index][2]>sample['objList'][other_index][2]:
+        #     instr='0'
+        # else:
+        #     instr='1'
+
         ## 临时改变动作
         for _,frame in enumerate(sample['trajectory'][:-1]):
-            # if  _>0:
+            # if  _>10:
             #     break
-            if frame['action'][-1]==1:
-                break
+            # if frame['action'][-1]==1:
+            #     break
             # each frame
             
             imgs.append(frame['img']) # numpy array
@@ -293,15 +300,14 @@ class Feeder(Dataset):
                     frame['action'] = [*frame['action'],0,0]
                 if frame['action'][5]>=1:
                     frame['action'][5] = 1
+                def discretize_value(value, num_bins=256):
+                    # 确保值在[-1, 1]范围内
+                    value_clipped = np.clip(value, -1, 1)
+                    # 将[-1, 1]区间映射到[0, num_bins-1]
+                    discretized = np.round((value_clipped + 1) / 2 * (num_bins - 1))
+                    return discretized
+                frame['action'][:6] = discretize_value(frame['action'][:6])
                 action = np.array(frame['action'], dtype=np.float64)
-
-                # action = np.array(frame['after_state']['sensors'][3]['data'])
-                # action = action - np.array([x, y, z])
-                # action = action / 10
-                # action = np.array([0,0,0,*action,*frame['action'][-2:]])
-
-
-                # print('sensors', state[:3],x,y,z)
             else:
                 before_joints = frame['state']['joints']
                 before_joints = [joint['angle'] for joint in before_joints]
@@ -313,13 +319,15 @@ class Feeder(Dataset):
                 after_joints=[after_joints[id] for id in map_id]
                 joints = (np.array(after_joints)-np.array(before_joints)) /(actuatorRanges[:,1]-actuatorRanges[:,0])*50
                 action = np.array([joints[-12],joints[-11],joints[-6],joints[-5],frame['action'][-1]],dtype=np.float64)
-            # print("action",action)
-            target_index = sample['target_obj_index']-1
-            other_index = 1 if target_index==0 else 0
-            if sample['objList'][target_index][2]>sample['objList'][other_index][2]:
-                action = np.array([0]*8)
-            else:
-                action = np.array([1]*8)
+
+            # # 只要求输出物体是左还是右
+            # target_index = sample['target_obj_index']-1
+            # other_index = 1 if target_index==0 else 0
+            # if sample['objList'][target_index][2]>sample['objList'][other_index][2]:
+            #     action = np.array([0]*8)
+            # else:
+            #     action = np.array([1]*8)
+                
             actions.append(action)
             last_action = frame['action']
             
@@ -378,8 +386,6 @@ class Feeder(Dataset):
         frame_num = self.sample_frame
 
         # instr = [instr] * self.sample_frame
-
-        # 按照RT-1原文 tokenization
         actions_tok = [torch.from_numpy(action) for action in actions]
         imgs_tensor = [torch.from_numpy(img) for img in imgs]
         states_tensor = [torch.from_numpy(state) for state in states]

@@ -5,3 +5,4 @@ checkpoints/
 *_images/
 *_videos/
 *.pyc
+*.out

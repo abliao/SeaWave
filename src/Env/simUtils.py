@@ -354,7 +354,7 @@ class Sim(SimServer):
             for index,(nx,ny,nz) in enumerate(np.linspace([ox,oy,oz],[x,y,z],k+1)[1:]):
                 action = self.getEndPointPosition(handSide,nx,ny,nz)
                 self.setEndPointPosition(action)
-                time.sleep(0.1)
+                time.sleep(0.03)
                 if keep_rpy is not None and index%(int(3/gap) if int(3/gap)>0 else 1)==0:
                     self.set_world_rpy(keep_rpy,handSide=handSide)
                     time.sleep(0.05)
@@ -531,7 +531,6 @@ class Sim(SimServer):
             obj_loc[1]-=2-1
             # obj_loc[2]-=1
             obj_loc[2] = self.desk_height+5.5
-            gap=0.3
             for i in range(20):
                 sensor = self.getSensorsData(handSide='All',type='full')
                 middle = np.array(sensor[-10]['data'])
@@ -539,7 +538,7 @@ class Sim(SimServer):
                 vector = (obj_loc-middle)/p
                 if max(abs(obj_loc[:2]-middle[:2]))<1 and max(abs(obj_loc[2:]-middle[2:]))<2:
                     break
-                self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
+                self.moveHand(*vector,handSide=handSide,method='diff',gap=0.2,keep_rpy=(0,0,0))
                 yield [0,0,0,*vector,self.grasp_state['Left'],self.grasp_state['Right']]
         elif handSide=='Left':
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
@@ -561,7 +560,6 @@ class Sim(SimServer):
             obj_loc[1]+=4
             # obj_loc[2] -= 1
             obj_loc[2] = self.desk_height+5.5
-            gap=0.3
             for i in range(20):
                 sensor = self.getSensorsData(handSide='All',type='full')
                 middle = np.array(sensor[-24]['data'])
@@ -569,7 +567,7 @@ class Sim(SimServer):
                 vector = (obj_loc-middle)/p
                 if max(abs(obj_loc[:2]-middle[:2]))<1 and max(abs(obj_loc[2:]-middle[2:]))<2:
                     break
-                self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
+                self.moveHand(*vector,handSide=handSide,method='diff',gap=0.2,keep_rpy=(0,0,0))
                 yield [*vector,0,0,0,self.grasp_state['Left'],self.grasp_state['Right']]
 
     def set_world_rpy(self,world_rpy_value,handSide='Right'):
