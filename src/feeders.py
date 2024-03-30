@@ -111,7 +111,7 @@ class Feeder(Dataset):
             # transforms.Resize((256, 256)),
             # transforms.RandomCrop(224),
             transforms.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.5),
-            # AddGaussianNoise(0., 1.),
+            AddGaussianNoise(0., 1.),
             # transforms.ToTensor()
         ])
         # self.channel = grpc.insecure_channel(self.channel_name,options=[
@@ -267,13 +267,13 @@ class Feeder(Dataset):
         now_joints = [0]*14 + [36.0,-40.0,40.0,-90.0,5.0,0.0,0.0]
         last_action = np.array(sample['initLoc'])
 
-        # 改变instr
-        target_index = sample['target_obj_index']-1
-        other_index = 1 if target_index==0 else 0
-        if sample['objList'][target_index][2]>sample['objList'][other_index][2]:
-            instr='0'
-        else:
-            instr='1'
+        # # 改变instr
+        # target_index = sample['target_obj_index']-1
+        # other_index = 1 if target_index==0 else 0
+        # if sample['objList'][target_index][2]>sample['objList'][other_index][2]:
+        #     instr='0'
+        # else:
+        #     instr='1'
 
         ## 临时改变动作
         for _,frame in enumerate(sample['trajectory'][:-1]):

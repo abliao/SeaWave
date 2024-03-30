@@ -38,7 +38,7 @@ datasets:
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_3
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_graspTargetObj_Right_2
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/3_objs_graspTargetObj_Right
-      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_graspTargetObj_Right_0320
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right_0322
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_knockOver_Right
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_knockOver_Right
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_moveNear_Right
@@ -98,7 +98,7 @@ wandb:
   notes: null
 
 common:
-  epochs: 10000
+  epochs: 5000
   device: cuda:0
   do_checkpoint: True
   seed: 0
@@ -107,7 +107,7 @@ common:
 
 initialization:
 #  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-20/11-44-02/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/21-41-10/checkpoints/last.p-t #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/14-02-01/checkpoints/last.pt  #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-15/10-31-52/checkpoints/last.pt
-  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-03-24/11-57-02/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-03-01/19-32-27/checkpoints/last.pt-
+  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-03-28/13-02-03/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-03-01/19-32-27/checkpoints/last.pt-
   # 00-14-47
   load_tokenizer: False
   load_world_model: True 
@@ -120,7 +120,7 @@ training:
     batch_num_samples: 64
     grad_acc_steps: 1
     max_grad_norm: 10.0
-    weight_decay: 0.00001 # 0.01
+    weight_decay: 0.001 #0.00001 # 0.01
     start_after_epochs: 0
     learning_rate: 0.00001 # 0.00001
     lr_scheduler_func: CosineAnnealingLR # StepLR CosineAnnealingLR

@@ -193,6 +193,12 @@ def grasp(sim,agent,log,target_obj_index,robot_location,objList,device='cuda',hi
         # else:
         #     return False
         # break
+
+        # 离散动作处理
+        last_action = last_action.argmax(axis=1)
+        last_action = last_action/(256-1)*2-1  #np.round((value_clipped + 1) / 2 * (num_bins - 1))
+        last_action[-2:] = np.round(last_action[-2:])
+        assert last_action[-1]==0 or last_action[-1]==1
         if handSide=='Right':
             last_action[:3],last_action[3:6]= last_action[3:6], last_action[:3]
         else:
@@ -217,12 +223,12 @@ def grasp(sim,agent,log,target_obj_index,robot_location,objList,device='cuda',hi
             # print('last_action',last_action)
             sim.changeJoints(joints)
         
-        if_grasp = sigmoid(last_action[-1])>0.5
+        if_grasp = last_action[-1]==1
 
         if if_grasp and sim.grasp_state[handSide]==0:
             sim.grasp(angle=(65,68),handSide=handSide)
             # time.sleep(3)
-            print(f'to grasp, grasp_state={sim.grasp_state[handSide]}, sigmoid(last_action[-1])={sigmoid(last_action[-1])}')
+            print(f'to grasp, grasp_state={sim.grasp_state[handSide]}')
             log['grasp_img'] = sim.getImage()
         elif not if_grasp and sim.grasp_state[handSide]==1:
             sim.release()
