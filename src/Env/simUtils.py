@@ -36,6 +36,7 @@ class SimServer():
     'Application': ['a milk product', 'a adhesive product', 'a coffee beverage', 'a container', 'a milk product', 'a refreshing beverage', 'a milk product', 'a refreshing beverage', 'a snack', None, None, None, None, None],
     'Other': ['a tapered mouth', None, None, None, None, 'a tapered mouth', 'green cap', None, 'yellow cap', None, None, None, None, None],
     'reshape': [(0.9,0.9,0.9),(1.2,1.2,1.2),(0.8,0.8,0.9),(0.8,0.8,1),(0.9,0.9,0.9),(1,1,1),(0.8,0.8,0.9),(0.7,0.7,1),(0.7,0.7,1), (0.6,0.6,0.6), (0.2,0.2,0.1), (1,1,1), (1,1,1), (1,1,1)],
+    'mask_id':[1,2,6,7,9,8,10,11,12,14,13,15,16,17]
     }
     
     objs = pd.DataFrame(data)
