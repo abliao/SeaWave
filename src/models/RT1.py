@@ -16,7 +16,11 @@ class RT1State(nn.Module):
         self.mlp_extractor=nn.Sequential(
             LayerNorm(512),
         )
-        self.action_net=nn.Linear(512, num_actions)
+        # self.action_net=nn.Linear(512, num_actions)
+        self.action_net = nn.Sequential(
+            nn.Linear(512, num_actions * 256),
+            Rearrange('... (a b) -> ... a b', b = 256)
+        )
     
     def forward(self,img,instruction,state):
         token=self.RT1(img,instruction,state)

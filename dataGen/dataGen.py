@@ -118,7 +118,8 @@ def Resize(mat):
 from tqdm import tqdm
 
 import re
-f=open('Imitation_data/RLexpert/0816_two_obj_data.txt')
+# f=open('Imitation_data/RLexpert/0816_two_obj_data.txt')
+f=open('Imitation_data/RLexpert/0718_single_merge_data.txt')
 data=[]
 for line in f.readlines():
     line = line.strip('\n')
@@ -160,12 +161,14 @@ for epoch in range(1):
         sim.removeObjects('all')
         objs = sim.getObjsInfo()
         desk_height = 98 # 固定桌子高度
-        desk_id = random.choice(sim.desks.ID.values)
+        desk_id = 1 # random.choice(sim.desks.ID.values)
         sim.addDesk(desk_id, h=desk_height)
         ids = random.sample(list(can_list), n_objs)
         objList = [] #sim.genObjs(n=n_objs, ids=ids, h=sim.desk_height, handSide = handSide, min_distance=25)
+        assert  len(df[index][0])//3==n_objs, 'data error'
         objList.append([ids[0],*df[index][0][:2],desk_height+1])
-        objList.append([ids[1], *df[index][0][3:5],desk_height+1])
+        if n_objs>1:
+            objList.append([ids[1], *df[index][0][3:5],desk_height+1])
         sim.addObjects(objList)
         target_obj_index = random.randint(1,n_objs)
         if n_objs>1:

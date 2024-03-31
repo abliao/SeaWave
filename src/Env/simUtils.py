@@ -35,7 +35,7 @@ class SimServer():
     'Shape': ['cylinder', 'cylinder, short', 'cylinder', 'cylinder', 'cylinder, tall and slender', 'cylinder', 'cylinder', 'cuboid', 'cylinder, high', None, None, None, None, None],
     'Application': ['a milk product', 'a adhesive product', 'a coffee beverage', 'a container', 'a milk product', 'a refreshing beverage', 'a milk product', 'a refreshing beverage', 'a snack', None, None, None, None, None],
     'Other': ['a tapered mouth', None, None, None, None, 'a tapered mouth', 'green cap', None, 'yellow cap', None, None, None, None, None],
-    'reshape': [(0.9,0.9,0.9),(1.2,1.2,1.2),(0.8,0.8,0.9),(0.8,0.8,1),(0.9,0.9,0.9),(1,1,1),(0.8,0.8,0.9),(0.7,0.7,1),(0.7,0.7,1), (0.6,0.6,0.6), (0.2,0.2,0.1), (1,1,1), (1,1,1), (1,1,1)],
+    'reshape': [(0.9,0.9,0.9),(1.2,1.2,1.2),(0.8,0.8,0.9),(0.8,0.8,1),(0.9,0.9,0.9),(1,1,1),(0.8,0.8,0.9),(0.7,0.7,1),(0.7,0.7,1), (0.6,0.6,0.6), (0.2,0.2,0.1), (0.9,0.9,1), (1,1,1), (1,1,1)],
     'mask_id':[1,2,6,7,9,8,10,11,12,14,13,15,16,17]
     }
     
@@ -532,7 +532,6 @@ class Sim(SimServer):
             obj_loc[1]-=2-1
             # obj_loc[2]-=1
             obj_loc[2] = self.desk_height+5.5
-            gap=0.3
             for i in range(20):
                 sensor = self.getSensorsData(handSide='All',type='full')
                 middle = np.array(sensor[-10]['data'])
@@ -540,7 +539,7 @@ class Sim(SimServer):
                 vector = (obj_loc-middle)/p
                 if max(abs(obj_loc[:2]-middle[:2]))<1 and max(abs(obj_loc[2:]-middle[2:]))<2:
                     break
-                self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
+                self.moveHand(*vector,handSide=handSide,method='diff',gap=0.2,keep_rpy=(0,0,0))
                 yield [0,0,0,*vector,self.grasp_state['Left'],self.grasp_state['Right']]
         elif handSide=='Left':
             obj_loc=np.array(self.findObj(id=obj_id)['location'])
@@ -562,7 +561,6 @@ class Sim(SimServer):
             obj_loc[1]+=4
             # obj_loc[2] -= 1
             obj_loc[2] = self.desk_height+5.5
-            gap=0.3
             for i in range(20):
                 sensor = self.getSensorsData(handSide='All',type='full')
                 middle = np.array(sensor[-24]['data'])
@@ -570,7 +568,7 @@ class Sim(SimServer):
                 vector = (obj_loc-middle)/p
                 if max(abs(obj_loc[:2]-middle[:2]))<1 and max(abs(obj_loc[2:]-middle[2:]))<2:
                     break
-                self.moveHand(*vector,handSide=handSide,method='diff',gap=gap,keep_rpy=(0,0,0))
+                self.moveHand(*vector,handSide=handSide,method='diff',gap=0.2,keep_rpy=(0,0,0))
                 yield [*vector,0,0,0,self.grasp_state['Left'],self.grasp_state['Right']]
 
     def set_world_rpy(self,world_rpy_value,handSide='Right'):

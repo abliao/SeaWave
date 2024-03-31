@@ -191,8 +191,8 @@ class Trainer:
         metrics_tokenizer, metrics_world_model, metrics_actor = {}, {}, {}
 
         cfg_agent = self.cfg.training.agent
-        steps_per_epoch = len(self.train_dataset) 
-        
+        steps_per_epoch = len(self.train_dataset)
+
         if epoch > cfg_agent.start_after_epochs:
             metrics_agent = self.train_component(self.agent, self.optimizer_agent, steps_per_epoch=steps_per_epoch, lr_scheduler=self.lr_scheduler_agent, **cfg_agent)
         self.agent.eval()
@@ -209,7 +209,7 @@ class Trainer:
             next_imgs = next_imgs.contiguous().view(B*SEQ, H, W, C).float()
             _, _, V = actions.shape
             B, SEQ, F, V2 = states_tensor.shape
-            actions = actions.contiguous().view(-1, V).float()
+            actions = actions.contiguous().view(-1, V) # .float()
             states_tensor = states_tensor.contiguous().view(-1, F, V2).float()
 
             imgs = imgs.permute(0, 1, 4, 2, 3) # 'b f c h w'
@@ -271,7 +271,7 @@ class Trainer:
             next_imgs = next_imgs.contiguous().view(B*SEQ, H, W, C).float()
             _, _, V = actions.shape
             B, SEQ, F, V2 = states_tensor.shape
-            actions = actions.contiguous().view(-1, V).float()
+            actions = actions.contiguous().view(-1, V) #.float()
             states_tensor = states_tensor.contiguous().view(-1, F, V2).float()
 
             imgs = imgs.permute(0, 1, 4, 2, 3)
@@ -320,6 +320,7 @@ class Trainer:
 
     def _save_checkpoint(self, epoch: int, save_agent_only: bool) -> None:
         torch.save(self.agent.state_dict(), self.ckpt_dir / 'last.pt')
+        torch.save(self.agent.state_dict(), self.ckpt_dir / f'{epoch}.pt')
         if not save_agent_only:
             torch.save(epoch, self.ckpt_dir / 'epoch.pt')
             torch.save({
