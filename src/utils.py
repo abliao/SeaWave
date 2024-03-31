@@ -2,13 +2,19 @@ from collections import OrderedDict
 import cv2
 from pathlib import Path
 import random
+import os
 import shutil
-
+from PIL import Image
+import glob
+import json
+import cv2
 import numpy as np
 import torch
 import torch.nn as nn
 from torch.optim.lr_scheduler import StepLR, CosineAnnealingLR
 from episode import Episode
+
+from .Env import GrabSim_pb2
 
 LR_Scheduler = {'StepLR':StepLR,
                 'CosineAnnealingLR':CosineAnnealingLR}
@@ -155,3 +161,122 @@ def make_video(fname, fps, frames):
     for frame in frames:
         video.write(frame[:, :, ::-1])
     video.release()
+
+
+
+def get_mask_from_json(json_path, img):
+    try:
+        with open(json_path, "r") as r:
+            anno = json.loads(r.read())
+    except:
+        with open(json_path, "r", encoding="cp1252") as r:
+            anno = json.loads(r.read())
+
+    inform = anno["shapes"]
+    comments = anno["text"]
+    is_sentence = anno["is_sentence"]
+
+    height, width = img.shape[:2]
+
+    ### sort polies by area
+    area_list = []
+    valid_poly_list = []
+    for i in inform:
+        label_id = i["label"]
+        points = i["points"]
+        if "flag" == label_id.lower():  ## meaningless deprecated annotations
+            continue
+
+        tmp_mask = np.zeros((height, width), dtype=np.uint8)
+        cv2.polylines(tmp_mask, np.array([points], dtype=np.int32), True, 1, 1)
+        cv2.fillPoly(tmp_mask, np.array([points], dtype=np.int32), 1)
+        tmp_area = tmp_mask.sum()
+
+        area_list.append(tmp_area)
+        valid_poly_list.append(i)
+
+    ### ground-truth mask
+    sort_index = np.argsort(area_list)[::-1].astype(np.int32)
+    sort_index = list(sort_index)
+    sort_inform = []
+    for s_idx in sort_index:
+        sort_inform.append(valid_poly_list[s_idx])
+
+    mask = np.zeros((height, width), dtype=np.uint8)
+    for i in sort_inform:
+        label_id = i["label"]
+        points = i["points"]
+
+        if "ignore" in label_id.lower():
+            label_value = 255  # ignored during evaluation
+        else:
+            label_value = 1  # target
+
+        cv2.polylines(mask, np.array([points], dtype=np.int32), True, label_value, 1)
+        cv2.fillPoly(mask, np.array([points], dtype=np.int32), label_value)
+
+    return mask, comments, is_sentence
+
+def data_processing(sim,depth_mat,target_id,output_path):
+    # 目标物体名称
+    target_name = sim.objs[sim.objs.ID==target_id].Name.values[0]
+    # # 获取RGB和掩码
+    # caremras=[GrabSim_pb2.CameraName.Head_Color,GrabSim_pb2.CameraName.Head_Segment]
+    # ignore = np.array([0,128])
+    # color_mat,depth_mat=sim.getImage(caremras)
+    
+    unique_values = np.unique( depth_mat.ravel())
+    assert  (unique_values==ignore[0]).any() and (unique_values==ignore[1]).any(), 'mask may have been changed'
+    unique_values = np.setdiff1d(unique_values,ignore)
+    assert (unique_values==sim.objs[sim.objs.ID==target_id].mask_id.values[0]).any(), 'mask may have been changed'
+
+    # 获取目标掩码
+    mat_bool = depth_mat==sim.objs[sim.objs.ID==target_id].mask_id.values[0]
+    mask = depth_mat.copy()
+    mask[mat_bool]=255
+    mask[~mat_bool]=0
+    mask=mask[:,:,0]
+
+    # 提取轮廓
+    def mask_to_points(mask):
+        # 查找轮廓
+        _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        
+        # 存储所有轮廓的点
+        contours_points = []
+        
+        for contour in contours:
+            # 轮廓近似
+            epsilon = 0.01 * cv2.arcLength(contour, True)
+            approx = cv2.approxPolyDP(contour, epsilon, True)
+            
+            # 将轮廓点添加到列表
+            contour_points = [[float(point[0][0]),float(point[0][1])] for point in approx]
+            contours_points.append(contour_points)
+            
+        return contours_points
+
+    # 转换
+    points_list = mask_to_points(mask)
+
+    data={}
+    data['text']=['pick a '+target_name]
+    data['is_sentence']=True
+    data['shapes']=[]
+    assert len(points_list)==1, 'too many objects'
+    for points in points_list:
+        shape={"label": "target",
+        "labels": [
+            "target"
+        ],
+        "shape_type": "polygon",
+        "image_name": output_path+"1.jpg",
+        "points":points,
+        "group_id": None,
+        "group_ids": [
+            None
+        ],
+        "flags": {}
+        }
+        data['shapes'].append(shape)
+    return data

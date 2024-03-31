@@ -1,6 +1,7 @@
 import numpy as np
 import pickle
 from collections import OrderedDict
+from . import GrabSim_pb2
 
 def initJointsArrange():
     joints_arrange = [

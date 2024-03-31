@@ -7,6 +7,8 @@ import json
 sys.path.append('./')
 sys.path.append('../')
 from src.Env.simUtils import *
+from src.utils import *
+
 import matplotlib.pyplot as plt
 from moviepy.editor import ImageSequenceClip, ImageClip, concatenate_videoclips
 
@@ -87,12 +89,6 @@ else:
     with open(meta_data_path, 'rb') as f:
         meta_data = json.load(f)
 
-log_images_path = './log_images'
-if not os.path.exists(log_images_path):
-    os.makedirs(log_images_path)
-grasp_images_path = './grasp_images'
-if not os.path.exists(grasp_images_path):
-    os.makedirs(grasp_images_path)
 before_grasp_images_path = './before_grasp_images'
 if not os.path.exists(before_grasp_images_path):
     os.makedirs(before_grasp_images_path)
@@ -198,7 +194,7 @@ for epoch in range(1):
         offline_data['trajectory'] = []
 
         last_action = (ox-sx, oy-sy, oz)
-        last_img = Resize(sim.getImage())
+        last_imgs = sim.getImage()
         last_state = sim.getState()
         # do_values = []
         if args.event=='placeTargetObj':
@@ -206,16 +202,21 @@ for epoch in range(1):
                 pass
             if not sim.checkGraspTargetObj(obj_id=target_obj_index):
                 continue
+        
+        # 开始记录数据
+        file_output_path = output_path+f'/{index:06d}'
+        
         if args.event=='moveNear':
             for action in event['act'](obj1_id=target_obj_index,obj2_id=other_obj_index, handSide=handSide):
                 # values = sim.bow_head()
                 # do_values.append(values)
                 each_frame = {}
-                each_frame['img'] = last_img
+                each_frame['img'] = last_imgs[0]
+                each_frame['json_data'] = data_processing(sim,last_imgs[1],target_obj_id,file_output_path)
                 each_frame['state'] = last_state
                 each_frame['action'] = action
                 time.sleep(0.05)
-                last_img = Resize(sim.getImage())
+                last_imgs = sim.getImage()
                 last_state = sim.getState()
                 each_frame['after_state'] = last_state
                 offline_data['trajectory'].append(each_frame)
@@ -224,25 +225,17 @@ for epoch in range(1):
                 # values = sim.bow_head()
                 # do_values.append(values)
                 each_frame = {}
-                each_frame['img'] = last_img
+                each_frame['img'] = last_imgs[0]
+                each_frame['json_data'] = data_processing(sim,last_imgs[1],target_obj_id,file_output_path)
                 each_frame['state'] = last_state
                 each_frame['action'] = action
                 time.sleep(0.05)
-                last_img = Resize(sim.getImage())
+                last_imgs = sim.getImage()
                 last_state = sim.getState()
                 each_frame['after_state'] = last_state
                 offline_data['trajectory'].append(each_frame)
 
-        if (args.event == 'moveNear' and event['check'](obj1_id=target_obj_index,obj2_id=other_obj_index)) or (args.event != 'moveNear' and event['check'](obj_id=target_obj_index)) :
-            collected_num += 1
-            is_success = True
-            print(f'Success have collected {collected_num} datas')
-            with open(output_path + f'/{collected_num:06d}.pkl', 'wb') as f:
-                pickle.dump(offline_data, f)
-        else:
-            is_success = False
-            print('fail data:', index, desk_id, target_obj_id, objList)
-
+        # 保存数据
         im = sim.getImage()
         plt.imshow(im)
         plt.savefig(before_grasp_images_path + f"/{index:04d}_{is_success}_{target_obj}_{args.event}.png", format='png')
@@ -261,6 +254,67 @@ for epoch in range(1):
             "start_index": index + 1,
             "data_info": data_info,
         }
-        # 将数据转换成JSON格式
         with open(meta_data_path, 'w') as f:
             json.dump(meta_data, f)
+
+        if (args.event == 'moveNear' and event['check'](obj1_id=target_obj_index,obj2_id=other_obj_index)) or (args.event != 'moveNear' and event['check'](obj_id=target_obj_index)) :
+            collected_num += 1
+            is_success = True
+            print(f'Success have collected {collected_num} datas')
+
+            if not os.path.exists(file_output_path):
+                os.makedirs(file_output_path)
+            for frame_id,frame in enumerate(offline_data['trajectory']):
+                # 将数据转换成JSON格式
+                
+                image = Image.fromarray(frame['img'])
+                # 保存图像到文件
+                image.save(file_output_path+f'/{frame_id:03d}.jpg')
+
+                with open(file_output_path+f'/{frame_id:03d}.json','w') as f:
+                    json.dump(frame['json_data'],f)
+                del frame['img']
+                del frame['json_data']
+            with open(file_output_path + f'/{collected_num:06d}.pkl', 'wb') as f:
+                pickle.dump(offline_data, f)
+            
+            # 测试掩码有没有问题
+            json_path = file_output_path+f'/{frame_id:03d}.json'
+            img_path = json_path.replace(".json", ".jpg")
+            img = cv2.imread(img_path)[:, :, ::-1]
+            mask, comments, is_sentence = get_mask_from_json(json_path, image)
+            ## visualization. Green for target, and red for ignore.
+            valid_mask = (mask == 1).astype(np.float32)[:, :, None]
+            ignore_mask = (mask == 255).astype(np.float32)[:, :, None]
+            vis_img = img * (1 - valid_mask) * (1 - ignore_mask) + (
+                (np.array([0, 255, 0]) * 0.6 + img * 0.4) * valid_mask
+                + (np.array([255, 0, 0]) * 0.6 + img * 0.4) * ignore_mask
+            )
+            vis_img = np.concatenate([img, vis_img], 1)
+            vis_path = os.path.join(
+                '../output/visualizations', json_path.split("/")[-1].replace(".json", ".jpg")
+            )
+            cv2.imwrite(vis_path, vis_img[:, :, ::-1])
+
+            json_path = file_output_path+f'/{0:03d}.json'
+            img_path = json_path.replace(".json", ".jpg")
+            img = cv2.imread(img_path)[:, :, ::-1]
+            mask, comments, is_sentence = get_mask_from_json(json_path, image)
+            ## visualization. Green for target, and red for ignore.
+            valid_mask = (mask == 1).astype(np.float32)[:, :, None]
+            ignore_mask = (mask == 255).astype(np.float32)[:, :, None]
+            vis_img = img * (1 - valid_mask) * (1 - ignore_mask) + (
+                (np.array([0, 255, 0]) * 0.6 + img * 0.4) * valid_mask
+                + (np.array([255, 0, 0]) * 0.6 + img * 0.4) * ignore_mask
+            )
+            vis_img = np.concatenate([img, vis_img], 1)
+            vis_path = os.path.join(
+                '../output/visualizations', json_path.split("/")[-1].replace(".json", ".jpg")
+            )
+            cv2.imwrite(vis_path, vis_img[:, :, ::-1])
+        else:
+            is_success = False
+            print('fail data:', index, desk_id, target_obj_id, objList)
+        
+        
+        

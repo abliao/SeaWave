@@ -238,12 +238,15 @@ class Sim(SimServer):
         scene=self.sim_client.RemoveObjects(GrabSim_pb2.RemoveList(IDs=ids, scene=self.scene_id))
         return scene
 
-    def getImage(self,caremras=[GrabSim_pb2.CameraName.Head_Color]):
+    def getImage(self,caremras=[GrabSim_pb2.CameraName.Head_Color,GrabSim_pb2.CameraName.Head_Segment]):
         # 获得图像
         action = GrabSim_pb2.CameraList(cameras=caremras)
-        im = self.sim_client.Capture(action).images[0]
-        mat = np.frombuffer(im.data,dtype=im.dtype).reshape((im.height, im.width, im.channels))
-        return mat
+        mats = []
+        imgs = self.sim_client.Capture(action).images
+        for im in imgs:
+            mat = np.frombuffer(im.data,dtype=im.dtype).reshape((im.height, im.width, im.channels))
+            mats.append(mat)
+        return mats
 
     def EnableEndPointCtrl(self,enable=True):
         if enable != self.enableEndPointCtrl:
