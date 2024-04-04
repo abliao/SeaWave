@@ -38,7 +38,7 @@ datasets:
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_3
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_graspTargetObj_Right_2
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/3_objs_graspTargetObj_Right
-      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right_0322
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right_0402
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_knockOver_Right
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_knockOver_Right
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_moveNear_Right
@@ -65,7 +65,7 @@ datasets:
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_3
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/3_objs_graspTargetObj_Right
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_graspTargetObj_Right_2
-      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right_0322
+      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right_test
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/1_objs_knockOver_Right
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_knockOver_Right
 #      - /data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_moveNear_Right
@@ -107,7 +107,7 @@ common:
 
 initialization:
 #  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-20/11-44-02/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/21-41-10/checkpoints/last.p-t #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/14-02-01/checkpoints/last.pt  #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-15/10-31-52/checkpoints/last.pt
-  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-03-28/13-02-03/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-03-01/19-32-27/checkpoints/last.pt-
+  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-04-04/15-47-12/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-03-01/19-32-27/checkpoints/last.pt-
   # 00-14-47
   load_tokenizer: False
   load_world_model: True 

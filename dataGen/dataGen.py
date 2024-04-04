@@ -65,8 +65,8 @@ events = {
 }
 event = events[args.event]
 
-
-output_path = '/data2/liangxiwen/zkd/datasets/dataGen/DATA'+ os.sep+args.output_path
+dir_name = args.output_path
+output_path = '/data2/liangxiwen/zkd/datasets/dataGen/DATA'+ os.sep+dir_name
 data_info=args.data_info
 meta_data_path = output_path + os.sep + 'meta_data.json'
 n_objs = args.n_objs
@@ -114,8 +114,8 @@ def Resize(mat):
 from tqdm import tqdm
 
 import re
-# f=open('Imitation_data/RLexpert/0816_two_obj_data.txt')
-f=open('Imitation_data/RLexpert/0718_single_merge_data.txt')
+f=open('Imitation_data/RLexpert/0816_two_obj_data.txt')
+# f=open('Imitation_data/RLexpert/0718_single_merge_data.txt')
 data=[]
 for line in f.readlines():
     line = line.strip('\n')
@@ -205,14 +205,14 @@ for epoch in range(1):
         
         # 开始记录数据
         file_output_path = output_path+f'/{index:06d}'
-        
+        file_prefix = dir_name+f'/{index:06d}'
         if args.event=='moveNear':
             for action in event['act'](obj1_id=target_obj_index,obj2_id=other_obj_index, handSide=handSide):
                 # values = sim.bow_head()
                 # do_values.append(values)
                 each_frame = {}
                 each_frame['img'] = last_imgs[0]
-                each_frame['json_data'] = data_processing(sim,last_imgs[1],target_obj_id,file_output_path)
+                each_frame['json_data'] = data_processing(sim,last_imgs[1],target_obj_id,file_prefix,frame_id)
                 each_frame['state'] = last_state
                 each_frame['action'] = action
                 time.sleep(0.05)
@@ -221,12 +221,12 @@ for epoch in range(1):
                 each_frame['after_state'] = last_state
                 offline_data['trajectory'].append(each_frame)
         else:
-            for action in event['act'](obj_id=target_obj_index,handSide=handSide):
+            for frame_id,(action,action_description) in enumerate(event['act'](obj_id=target_obj_index,handSide=handSide)):
                 # values = sim.bow_head()
                 # do_values.append(values)
                 each_frame = {}
                 each_frame['img'] = last_imgs[0]
-                each_frame['json_data'] = data_processing(sim,last_imgs[1],target_obj_id,file_output_path)
+                each_frame['json_data'] = data_processing(sim,last_imgs[1],target_obj_id,action_description,file_prefix,frame_id)
                 each_frame['state'] = last_state
                 each_frame['action'] = action
                 time.sleep(0.05)
@@ -236,14 +236,21 @@ for epoch in range(1):
                 offline_data['trajectory'].append(each_frame)
 
         # 保存数据
-        im = sim.getImage()
+        if (args.event == 'moveNear' and event['check'](obj1_id=target_obj_index,obj2_id=other_obj_index)) or (args.event != 'moveNear' and event['check'](obj_id=target_obj_index)) :
+            collected_num += 1
+            is_success = True
+            print(f'Success have collected {collected_num} datas')
+        else:
+            is_success = False
+            print('fail data:', index, desk_id, target_obj_id, objList)
+        im = sim.getImage()[0]
         plt.imshow(im)
         plt.savefig(before_grasp_images_path + f"/{index:04d}_{is_success}_{target_obj}_{args.event}.png", format='png')
         # do_values = np.array(do_values)
         # np.save(log_images_path + f"/{index:04d}_{is_success}_{target_obj}.pkl", do_values)
         # 创建视频
         if len(offline_data['trajectory'])>0:
-            images = [ImageClip((frame['img'] * 255).astype(np.uint8), duration=1 / 3) for frame in
+            images = [ImageClip(frame['img'], duration=1 / 3) for frame in
                       offline_data['trajectory']]
             clip = concatenate_videoclips(images)
             clip.write_videofile(video_path + f"/{index:04d}_{is_success}_{target_obj}_{args.event}.mp4", fps=3)
@@ -257,11 +264,7 @@ for epoch in range(1):
         with open(meta_data_path, 'w') as f:
             json.dump(meta_data, f)
 
-        if (args.event == 'moveNear' and event['check'](obj1_id=target_obj_index,obj2_id=other_obj_index)) or (args.event != 'moveNear' and event['check'](obj_id=target_obj_index)) :
-            collected_num += 1
-            is_success = True
-            print(f'Success have collected {collected_num} datas')
-
+        if is_success:
             if not os.path.exists(file_output_path):
                 os.makedirs(file_output_path)
             for frame_id,frame in enumerate(offline_data['trajectory']):
@@ -282,7 +285,7 @@ for epoch in range(1):
             json_path = file_output_path+f'/{frame_id:03d}.json'
             img_path = json_path.replace(".json", ".jpg")
             img = cv2.imread(img_path)[:, :, ::-1]
-            mask, comments, is_sentence = get_mask_from_json(json_path, image)
+            mask, comments, is_sentence = get_mask_from_json(json_path, img)
             ## visualization. Green for target, and red for ignore.
             valid_mask = (mask == 1).astype(np.float32)[:, :, None]
             ignore_mask = (mask == 255).astype(np.float32)[:, :, None]
@@ -292,14 +295,14 @@ for epoch in range(1):
             )
             vis_img = np.concatenate([img, vis_img], 1)
             vis_path = os.path.join(
-                '../output/visualizations', json_path.split("/")[-1].replace(".json", ".jpg")
+                '../outputs/visualizations', json_path.split("/")[-1].replace(".json", ".jpg")
             )
             cv2.imwrite(vis_path, vis_img[:, :, ::-1])
 
             json_path = file_output_path+f'/{0:03d}.json'
             img_path = json_path.replace(".json", ".jpg")
             img = cv2.imread(img_path)[:, :, ::-1]
-            mask, comments, is_sentence = get_mask_from_json(json_path, image)
+            mask, comments, is_sentence = get_mask_from_json(json_path, img)
             ## visualization. Green for target, and red for ignore.
             valid_mask = (mask == 1).astype(np.float32)[:, :, None]
             ignore_mask = (mask == 255).astype(np.float32)[:, :, None]
@@ -309,12 +312,9 @@ for epoch in range(1):
             )
             vis_img = np.concatenate([img, vis_img], 1)
             vis_path = os.path.join(
-                '../output/visualizations', json_path.split("/")[-1].replace(".json", ".jpg")
+                '../outputs/visualizations', json_path.split("/")[-1].replace(".json", ".jpg")
             )
             cv2.imwrite(vis_path, vis_img[:, :, ::-1])
-        else:
-            is_success = False
-            print('fail data:', index, desk_id, target_obj_id, objList)
         
         
         

@@ -19,13 +19,13 @@ from tqdm import tqdm_notebook as tqdm
 import wandb
 import logging
 from agent import Agent
-from collector import Collector
+# from collector import Collector
 from envs import SingleProcessEnv, MultiProcessEnv
 from episode import Episode
 from make_reconstructions import make_reconstructions_from_batch
 from models.actor_critic import ActorCritic
 from models.world_model import WorldModel, WorldModelPredictive
-from utils import configure_optimizer, EpisodeDirManager, set_seed, LR_Scheduler
+from utils import configure_optimizer, set_seed, LR_Scheduler
 from tester import Tester
 
 def init_seed(seed):

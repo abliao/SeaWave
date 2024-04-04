@@ -12,9 +12,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.optim.lr_scheduler import StepLR, CosineAnnealingLR
-from episode import Episode
-
-from .Env import GrabSim_pb2
 
 LR_Scheduler = {'StepLR':StepLR,
                 'CosineAnnealingLR':CosineAnnealingLR}
@@ -113,35 +110,6 @@ class LossWithIntermediateLosses:
         return self
 
 
-class EpisodeDirManager:
-    def __init__(self, episode_dir: Path, max_num_episodes: int) -> None:
-        self.episode_dir = episode_dir
-        self.episode_dir.mkdir(parents=False, exist_ok=True)
-        self.max_num_episodes = max_num_episodes
-        self.best_return = float('-inf')
-
-    def save(self, episode: Episode, episode_id: int, epoch: int) -> None:
-        if self.max_num_episodes is not None and self.max_num_episodes > 0:
-            self._save(episode, episode_id, epoch)
-
-    def _save(self, episode: Episode, episode_id: int, epoch: int) -> None:
-        ep_paths = [p for p in self.episode_dir.iterdir() if p.stem.startswith('episode_')]
-        assert len(ep_paths) <= self.max_num_episodes
-        if len(ep_paths) == self.max_num_episodes:
-            to_remove = min(ep_paths, key=lambda ep_path: int(ep_path.stem.split('_')[1]))
-            to_remove.unlink()
-        episode.save(self.episode_dir / f'episode_{episode_id}_epoch_{epoch}.pt')
-
-        ep_return = episode.compute_metrics().episode_return
-        if ep_return > self.best_return:
-            self.best_return = ep_return
-            path_best_ep = [p for p in self.episode_dir.iterdir() if p.stem.startswith('best_')]
-            assert len(path_best_ep) in (0, 1)
-            if len(path_best_ep) == 1:
-                path_best_ep[0].unlink()
-            episode.save(self.episode_dir / f'best_episode_{episode_id}_epoch_{epoch}.pt')
-
-
 class RandomHeuristic:
     def __init__(self, num_actions):
         self.num_actions = num_actions
@@ -217,18 +185,18 @@ def get_mask_from_json(json_path, img):
 
     return mask, comments, is_sentence
 
-def data_processing(sim,depth_mat,target_id,output_path):
+def data_processing(sim,depth_mat,target_id,action_description,file_prefix,frame_id):
     # 目标物体名称
     target_name = sim.objs[sim.objs.ID==target_id].Name.values[0]
     # # 获取RGB和掩码
     # caremras=[GrabSim_pb2.CameraName.Head_Color,GrabSim_pb2.CameraName.Head_Segment]
-    # ignore = np.array([0,128])
     # color_mat,depth_mat=sim.getImage(caremras)
-    
+
+    ignore = np.array([0,128])
     unique_values = np.unique( depth_mat.ravel())
     assert  (unique_values==ignore[0]).any() and (unique_values==ignore[1]).any(), 'mask may have been changed'
     unique_values = np.setdiff1d(unique_values,ignore)
-    assert (unique_values==sim.objs[sim.objs.ID==target_id].mask_id.values[0]).any(), 'mask may have been changed'
+    assert (unique_values==sim.objs[sim.objs.ID==target_id].mask_id.values[0]).any(), f'mask may have been changed, target_name:{target_name}, unique_values:{unique_values}'
 
     # 获取目标掩码
     mat_bool = depth_mat==sim.objs[sim.objs.ID==target_id].mask_id.values[0]
@@ -240,7 +208,7 @@ def data_processing(sim,depth_mat,target_id,output_path):
     # 提取轮廓
     def mask_to_points(mask):
         # 查找轮廓
-        _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
         # 存储所有轮廓的点
         contours_points = []
@@ -258,19 +226,22 @@ def data_processing(sim,depth_mat,target_id,output_path):
 
     # 转换
     points_list = mask_to_points(mask)
+    print('len(points_list)',len(points_list))
+    assert len(points_list)<=1, 'too many objects'
 
     data={}
-    data['text']=['pick a '+target_name]
+    data['text']=['Pick a '+target_name+'.']
     data['is_sentence']=True
     data['shapes']=[]
-    assert len(points_list)==1, 'too many objects'
+    data['action_description'] = action_description
+    
     for points in points_list:
         shape={"label": "target",
         "labels": [
             "target"
         ],
         "shape_type": "polygon",
-        "image_name": output_path+"1.jpg",
+        "image_name": file_prefix+f"/{frame_id:03}.jpg",
         "points":points,
         "group_id": None,
         "group_ids": [

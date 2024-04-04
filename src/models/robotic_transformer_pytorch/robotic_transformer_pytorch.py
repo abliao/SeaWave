@@ -1180,15 +1180,12 @@ class DamWorld(nn.Module):
         )
         self.action_net=nn.Sequential(
             LayerNorm(embed_dim),
-            nn.Linear(embed_dim, 128),
-            nn.Tanh(),
-            nn.Linear(128, num_actions),
+            nn.Linear(embed_dim, num_actions*action_bins),
+            Rearrange('... (a b) -> ... a b', b = action_bins)
         )
         self.predict_action_net=nn.Sequential(
-            nn.Linear(num_actions, 128),
-            nn.Tanh(),
-            nn.Linear(128, embed_dim),
-            nn.Tanh(),
+            Rearrange('... a b -> ... (a b)', a=num_actions, b = action_bins),
+            nn.Linear(num_actions*action_bins, embed_dim),
         )
 
     @classifier_free_guidance
@@ -1230,7 +1227,7 @@ class DamWorld(nn.Module):
         
         action = self.action_net(pooled)
 
-        action_token = pooled.unsqueeze(1) # self.predict_action_net(action).unsqueeze(1)
+        action_token = self.predict_action_net(action).unsqueeze(1)
         prompt_token = torch.cat([text_token,action_token], dim=1)
         pos_emb = posemb_sincos_1d(prompt_token.shape[1], prompt_token.shape[-1], dtype = prompt_token.dtype, device = prompt_token.device)
         prompt_token = prompt_token + pos_emb

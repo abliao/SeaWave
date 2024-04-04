@@ -29,12 +29,13 @@ except:
     from Env import GrabSim_pb2
     from Env.simUtils import SimServer
 
-def Resize(mat,img_size=256):
+def Resize(mat,img_size=224):
     if isinstance(img_size,int):
         img_size = (img_size, img_size)
-    if mat.dtype !=np.uint8:
-        mat = (mat*255).astype(np.uint8)
-    mat = Image.fromarray(mat, mode='RGB')
+    if isinstance(mat,np.ndarray):
+        if mat.dtype !=np.uint8:
+            mat = (mat*255).astype(np.uint8)
+        mat = Image.fromarray(mat, mode='RGB')
     mat = mat.resize(img_size)
     mat = np.array(mat)
     mat = 1.0 * mat
@@ -94,7 +95,7 @@ class AddGaussianNoise(object):
 
 class Feeder(Dataset):
     objs = SimServer.objs
-    def __init__(self, data_path, instructions_path, control='joint', history_len=3, instructions_level=[3],  sample_frame=100, bin=256, img_size=256, data_size=None,dataAug=True):
+    def __init__(self, data_path, instructions_path, control='joint', history_len=3, instructions_level=[3],  sample_frame=100, bin=256, img_size=224, data_size=None,dataAug=True):
         self.data_path = data_path
         self.instructions_path = instructions_path
         
@@ -133,9 +134,10 @@ class Feeder(Dataset):
         # 获取文件夹下的所有文件和子文件夹
         total_files=[]
         for path in data_paths:
-            all_items = os.listdir(path)
-            # 过滤出文件
-            files = [os.path.join(path, item) for item in all_items if os.path.isfile(os.path.join(path, item)) and item.endswith('pkl')]
+            # all_items = os.listdir(path)
+            # files = [os.path.join(path, item) for item in all_items if os.path.isfile(os.path.join(path, item)) and item.endswith('pkl')]
+
+            files = [os.path.join(path, f) for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
             total_files+=files
         if isinstance(data_size,int):
             total_files=total_files[:data_size]
@@ -169,10 +171,15 @@ class Feeder(Dataset):
         # pre_joints_tok: Torch tensor [F(self.sample_frame), ActionNum(22)]
         # index: int * 1
         # 取数据
-        file = self.data[index]
+        files = [os.path.join(self.data[index], item) for item in os.listdir(self.data[index]) if os.path.isfile(os.path.join(self.data[index], item)) and item.endswith('pkl')]
+        assert len(files)==1
+        file = files[0]
         with open(file,'rb') as f:
             sample=pickle.load(f)
-            
+        
+        images = [os.path.join(self.data[index], item) for item in os.listdir(self.data[index]) if os.path.isfile(os.path.join(self.data[index], item)) and item.endswith('jpg')]
+        images = sorted(images)
+
         x,y,z=sample['robot_location']
         if 'event' not in sample.keys():
             event = 'graspTargetObj'
@@ -282,8 +289,8 @@ class Feeder(Dataset):
             # if frame['action'][-1]==1:
             #     break
             # each frame
-            
-            imgs.append(frame['img']) # numpy array
+            img = Image.open(images[_])
+            imgs.append(Resize(img,self.img_size)) # numpy array
             sensors=frame['state']['sensors']
             state = np.array(sensors[3]['data'])
             state[:3]-=np.array([x,y,z])
@@ -331,10 +338,8 @@ class Feeder(Dataset):
             actions.append(action)
             last_action = frame['action']
             
-        # print('states',states)
-        # print('actions',actions)
-        # next_imgs = imgs[1:]+[sample['trajectory'][-1]['img']]
-        next_imgs = [sample['trajectory'][-1]['img']] * len(imgs)
+        next_img = Resize(Image.open(images[-1]),self.img_size)
+        next_imgs = [next_img] * len(imgs)
         tmp_imgs=[]
         tmp_states=[]
         for i in range(len(imgs)):

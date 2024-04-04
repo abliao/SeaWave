@@ -133,7 +133,7 @@ def grasp(sim,agent,log,target_obj_index,robot_location,objList,device='cuda',hi
     instr=log['instruction']
 
     max_steps=80
-    obs=Resize(sim.getImage())
+    obs=Resize(sim.getImage([GrabSim_pb2.CameraName.Head_Color])[0])
     img=torch.Tensor(obs)
     img=img.reshape(-1,1,*img.shape).permute(0,1,4,2,3).to(device)
     imgs=torch.repeat_interleave(img, history_len, dim=1)
@@ -148,12 +148,12 @@ def grasp(sim,agent,log,target_obj_index,robot_location,objList,device='cuda',hi
     state[:]/=np.array([50,30,40])
     state=torch.Tensor(state).to(device).unsqueeze(0).unsqueeze(0)
     states=torch.repeat_interleave(state, history_len, dim=1)
-    log['imgs']=[sim.getImage()]
+    log['imgs']=[sim.getImage()[0]]
     joints = np.array(sim.getActuators())
     for _ in range(max_steps):
         # sim.bow_head()
         time.sleep(0.03)
-        obs=Resize(sim.getImage())
+        obs=Resize(sim.getImage([GrabSim_pb2.CameraName.Head_Color])[0])
         # plt.imshow(obs)
         # plt.savefig(episode_dir / f"{data['from_file']:04d}_test.png", format='png')
         # obs = data['trajectory'][0]['img']
@@ -229,12 +229,12 @@ def grasp(sim,agent,log,target_obj_index,robot_location,objList,device='cuda',hi
             sim.grasp(angle=(65,68),handSide=handSide)
             # time.sleep(3)
             print(f'to grasp, grasp_state={sim.grasp_state[handSide]}')
-            log['grasp_img'] = sim.getImage()
+            log['grasp_img'] = sim.getImage()[0]
         elif not if_grasp and sim.grasp_state[handSide]==1:
             sim.release()
         
         log['track'].append(last_action.copy())
-        log['imgs'].append(sim.getImage())
+        log['imgs'].append(sim.getImage()[0])
         if sim.checkGraspTargetObj(obj_id=target_obj_index):
         # if sim.checkKnockOver(obj_id=target_obj_index):
             log['info']='success'
@@ -501,7 +501,7 @@ def Tester(agent, cfg, episode_dir):
             print(log['detail'])
 
             # if index==0:
-            im = sim.getImage()
+            im = sim.getImage()[0]
             plt.imshow(im)
             plt.savefig(episode_dir / f"{index:04d}_{log['info']}_{log['targetObj']}.png", format='png')
             if 'grasp_img' in log.keys():

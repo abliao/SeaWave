@@ -638,16 +638,16 @@ class SimAction(Sim):
     def graspTargetObj(self,obj_id,handSide='Right',gap=1,keep_rpy=(0,0,0),distance=10):
         self.release(handSide=handSide)
         for action in self.closeTargetObj(obj_id=obj_id,handSide=handSide,gap=gap,keep_rpy=keep_rpy):
-            yield action
+            yield (action,'close to')
         self.grasp(handSide=handSide)
         if handSide=='Left':
             action = [0]*6+[1,0]
         else:
             action = [0]*6+[0,1]
-        yield action
+        yield (action, 'grasp')
         height = distance
         for action in self.moveHandReturnAction(0,0,height,handSide=handSide,gap=gap):
-            yield action
+            yield (action, 'move up')
 
     def checkGraspTargetObj(self,obj_id,height=5):
         target_loc=self.getObjsInfo()[obj_id]['location']
