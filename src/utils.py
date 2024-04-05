@@ -251,3 +251,27 @@ def data_processing(sim,depth_mat,target_id,action_description,file_prefix,frame
         }
         data['shapes'].append(shape)
     return data
+
+def get_normalized_bounding_box(mask):
+    """
+    计算并归一化二值掩码的边界框。
+
+    参数:
+    - mask: 二值掩码的numpy数组，目标区域用1表示，背景用0表示。
+
+    返回:
+    - (y_min, x_min, y_max, x_max): 归一化的边界框坐标。
+    """
+    rows = np.any(mask, axis=1)
+    cols = np.any(mask, axis=0)
+    y_min, y_max = np.where(rows)[0][[0, -1]]
+    x_min, x_max = np.where(cols)[0][[0, -1]]
+    
+    # 归一化坐标
+    height, width = mask.shape
+    y_min_normalized = y_min / height
+    y_max_normalized = y_max / height
+    x_min_normalized = x_min / width
+    x_max_normalized = x_max / width
+    
+    return np.array((y_min_normalized, x_min_normalized, y_max_normalized, x_max_normalized))

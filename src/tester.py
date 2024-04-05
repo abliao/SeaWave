@@ -19,7 +19,8 @@ import torch
 from Env import SimEnv, GrabSim_pb2_grpc, GrabSim_pb2, initJointsArrange
 from Env.simUtils import *
 from Env.gen_data import name_type,gen_objs
-
+from utils import *
+from models.LISA.deploy import LISAChat
 
 actuatorRanges=np.array([[-30.00006675720215, 31.65018653869629],
  [-110.00215911865234, 30.00006675720215],
@@ -128,7 +129,7 @@ def Resize(mat):
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-def grasp(sim,agent,log,target_obj_index,robot_location,objList,device='cuda',history_len=1,handSide='Right',control='joint',target_action=None,data=None,episode_dir=None):
+def grasp(sim,agent,lisa_chat,log,target_obj_index,robot_location,objList,device='cuda',history_len=1,handSide='Right',control='joint',target_action=None,data=None,episode_dir=None):
     robot_location=np.array(robot_location)
     instr=log['instruction']
 
@@ -153,12 +154,12 @@ def grasp(sim,agent,log,target_obj_index,robot_location,objList,device='cuda',hi
     for _ in range(max_steps):
         # sim.bow_head()
         time.sleep(0.03)
-        obs=Resize(sim.getImage([GrabSim_pb2.CameraName.Head_Color])[0])
-        # plt.imshow(obs)
-        # plt.savefig(episode_dir / f"{data['from_file']:04d}_test.png", format='png')
-        # obs = data['trajectory'][0]['img']
-        # plt.imshow(data['trajectory'][0]['img'])
-        # plt.savefig(episode_dir / f"{data['from_file']:04d}_origin.png", format='png')
+        mats = sim.getImage()
+        text_output, pred_mask=lisa_chat.chat(np.array(mats[0]),instr+' Please output segmentation mask and action.')
+        bounding_box = get_normalized_bounding_box(pred_mask)
+        bounding_box = torch.Tensor(bounding_box).unsqueeze(0).unsqueeze(0)
+        obs=Resize(mats[0])
+        
         img=torch.Tensor(obs)
         img=img.reshape(-1,1,*img.shape).permute(0,1,4,2,3).to(device)
         sensors=sim.getState()['sensors']
@@ -183,6 +184,7 @@ def grasp(sim,agent,log,target_obj_index,robot_location,objList,device='cuda',hi
         batch['observations']=img
         batch['states']=state
         batch['instr']=[instr]
+        batch['bounding_boxes']=bounding_box
         predict=agent.act(batch)
         predict=predict[0].cpu().detach().numpy()
         last_action=predict
@@ -372,6 +374,8 @@ def Tester(agent, cfg, episode_dir):
     np.random.seed(seed)
 
     levels = cfg.datasets.eval.levels
+    LISA_version = cfg.datasets.eval.LISA_version
+    lisa_chat = LISAChat(LISA_version)
     client = cfg.env.client
     history_len = cfg.datasets.history_len
     action_nums = cfg.env.num_actions
@@ -469,11 +473,11 @@ def Tester(agent, cfg, episode_dir):
         log['targetObjID'] = target_obj_id
         log['targetObj'] = targetObj
 
-        instr = 'pick a ' + targetObj
+        instr = 'pick a ' + targetObj+'.'
         log['instruction'] = instr
         sx, sy = sim.getObservation().location.X, sim.getObservation().location.Y
         robot_location = (sx, sy, 90)
-        log = grasp(sim, agent, log, target_obj_index=target_obj_index, robot_location=robot_location, objList=objList,
+        log = grasp(sim, agent, lisa_chat, log, target_obj_index=target_obj_index, robot_location=robot_location, objList=objList,
                     device=device, history_len=history_len, control=control, handSide=handSide,target_action=action, data=data,episode_dir=episode_dir)
         # if log==True:
         #     success += 1

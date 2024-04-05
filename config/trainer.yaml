@@ -87,6 +87,7 @@ datasets:
     history_len: ${datasets.history_len}
     levels: 0
     control: ${env.control}
+    LISA_version: /data2/liangxiwen/zkd/LISA/runs/action
 
 wandb:
   mode: offline
@@ -107,7 +108,7 @@ common:
 
 initialization:
 #  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-20/11-44-02/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/21-41-10/checkpoints/last.p-t #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-17/14-02-01/checkpoints/last.pt  #/data2/liangxiwen/zkd/SeaWave/outputs/2024-02-15/10-31-52/checkpoints/last.pt
-  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-04-04/15-47-12/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-03-01/19-32-27/checkpoints/last.pt-
+  path_to_checkpoint: /data2/liangxiwen/zkd/SeaWave/outputs/2024-04-04/22-51-45/checkpoints/last.pt # /data2/liangxiwen/zkd/SeaWave/outputs/2024-03-01/19-32-27/checkpoints/last.pt-
   # 00-14-47
   load_tokenizer: False
   load_world_model: True 

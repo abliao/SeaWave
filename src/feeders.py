@@ -13,12 +13,16 @@ import numpy as np
 import re
 from PIL import Image
 import time
+import json
 import sys
+import cv2
 from torchvision import transforms
+from utils import *
+# from .model.LISA.utils.data_processing import get_mask_from_json
 
-sys.path.append('./')
-sys.path.append('../')
-sys.path.append('./feeders')
+# sys.path.append('./')
+# sys.path.append('../')
+# sys.path.append('./feeders')
 
 try:
     from . import GrabSim_pb2_grpc
@@ -46,6 +50,61 @@ def find_img(frame,img_size=256):
     if 'img'+str(img_size) in frame.keys():
         return frame['img'+str(img_size)]
     return Resize(frame['img'],img_size)
+
+def get_mask_from_json(json_path, img):
+    try:
+        with open(json_path, "r") as r:
+            anno = json.loads(r.read())
+    except:
+        with open(json_path, "r", encoding="cp1252") as r:
+            anno = json.loads(r.read())
+
+    inform = anno["shapes"]
+    comments = anno["text"]
+    is_sentence = anno["is_sentence"]
+    action = anno['action_description']
+    
+    height, width = img.shape[:2]
+
+    ### sort polies by area
+    area_list = []
+    valid_poly_list = []
+    for i in inform:
+        label_id = i["label"]
+        points = i["points"]
+        if "flag" == label_id.lower():  ## meaningless deprecated annotations
+            continue
+
+        tmp_mask = np.zeros((height, width), dtype=np.uint8)
+        cv2.polylines(tmp_mask, np.array([points], dtype=np.int32), True, 1, 1)
+        cv2.fillPoly(tmp_mask, np.array([points], dtype=np.int32), 1)
+        tmp_area = tmp_mask.sum()
+
+        area_list.append(tmp_area)
+        valid_poly_list.append(i)
+
+    ### ground-truth mask
+    sort_index = np.argsort(area_list)[::-1].astype(np.int32)
+    sort_index = list(sort_index)
+    sort_inform = []
+    for s_idx in sort_index:
+        sort_inform.append(valid_poly_list[s_idx])
+
+    mask = np.zeros((height, width), dtype=np.uint8)
+    for i in sort_inform:
+        label_id = i["label"]
+        points = i["points"]
+
+        if "ignore" in label_id.lower():
+            label_value = 255  # ignored during evaluation
+        else:
+            label_value = 1  # target
+
+        cv2.polylines(mask, np.array([points], dtype=np.int32), True, label_value, 1)
+        cv2.fillPoly(mask, np.array([points], dtype=np.int32), label_value)
+
+    return mask, comments, is_sentence, action
+
 
 actuatorRanges=np.array([[-30.00006675720215, 31.65018653869629],
  [-110.00215911865234, 30.00006675720215],
@@ -179,6 +238,8 @@ class Feeder(Dataset):
         
         images = [os.path.join(self.data[index], item) for item in os.listdir(self.data[index]) if os.path.isfile(os.path.join(self.data[index], item)) and item.endswith('jpg')]
         images = sorted(images)
+        jsons = [os.path.join(self.data[index], item) for item in os.listdir(self.data[index]) if os.path.isfile(os.path.join(self.data[index], item)) and item.endswith('json')]
+        jsons = sorted(jsons)
 
         x,y,z=sample['robot_location']
         if 'event' not in sample.keys():
@@ -268,6 +329,8 @@ class Feeder(Dataset):
             else:
                 instr = random.choice(instr['human'])
         imgs = []
+        masks = []
+        bounding_boxes = []
         states = []
         actions=[]
         next_imgs = []
@@ -283,14 +346,19 @@ class Feeder(Dataset):
         #     instr='1'
 
         ## 临时改变动作
-        for _,frame in enumerate(sample['trajectory'][:-1]):
+        for frame_id,frame in enumerate(sample['trajectory'][:-1]):
             # if  _>10:
             #     break
             # if frame['action'][-1]==1:
             #     break
             # each frame
-            img = Image.open(images[_])
+            img = Image.open(images[frame_id])
             imgs.append(Resize(img,self.img_size)) # numpy array
+            mask, sents, is_sentence, action = get_mask_from_json(jsons[frame_id], np.array(Image.open(images[frame_id])))
+            mask[mask==255] = 0
+            masks.append(mask)
+            bounding_box = get_normalized_bounding_box(mask)
+            bounding_boxes.append(bounding_box)
             sensors=frame['state']['sensors']
             state = np.array(sensors[3]['data'])
             state[:3]-=np.array([x,y,z])
@@ -318,7 +386,7 @@ class Feeder(Dataset):
             else:
                 before_joints = frame['state']['joints']
                 before_joints = [joint['angle'] for joint in before_joints]
-                after_joints = sample['trajectory'][_+1]['state']['joints'] # frame['after_state']['joints']
+                after_joints = sample['trajectory'][frame_id+1]['state']['joints'] # frame['after_state']['joints']
                 after_joints = [joint['angle'] for joint in after_joints]
                 map_id=[0,1,2,3,6,9,12,15,16,17,19,20,21,22,23,24,25,26,27,28,29,30,
                     33,36,39,42,43,44,46,47,48]
@@ -354,6 +422,7 @@ class Feeder(Dataset):
             tmp_states[-1]=np.array(tmp_states[-1])
         imgs=tmp_imgs
         states=tmp_states 
+
         # Sample N frames per trajectory
         frame_num = len(actions)
         if frame_num < self.sample_frame:
@@ -362,19 +431,25 @@ class Feeder(Dataset):
                 imgs = imgs.copy() + imgs
                 states = states.copy() + states
                 next_imgs = next_imgs.copy() + next_imgs
+                masks = masks.copy() +masks
+                bounding_boxes = bounding_boxes.copy() + bounding_boxes
                 # new_states = new_states.copy() + new_states
             actions = actions[-self.sample_frame:]
             imgs = imgs[-self.sample_frame:]
             states = states[-self.sample_frame:] 
             next_imgs = next_imgs[-self.sample_frame:] 
+            masks = masks[-self.sample_frame:]
+            bounding_boxes = bounding_boxes[-self.sample_frame:]
             # new_states = new_states[:self.sample_frame]
         else:
-            zip_list = random.sample(list(zip(actions,imgs,states,next_imgs)), self.sample_frame)
-            actions, imgs, states, next_imgs = zip(*zip_list)
+            zip_list = random.sample(list(zip(actions,imgs,states,next_imgs,masks,bounding_boxes)), self.sample_frame)
+            actions, imgs, states, next_imgs, masks, bounding_boxes = zip(*zip_list)
             actions = list(actions)
             imgs = list(imgs)
             states = list(states)
             next_imgs = list(next_imgs)
+            masks = list(masks)
+            bounding_boxes = list(bounding_boxes)
             # new_states = list(new_states)
 
         if self.dataAug:
@@ -395,7 +470,8 @@ class Feeder(Dataset):
         imgs_tensor = [torch.from_numpy(img) for img in imgs]
         states_tensor = [torch.from_numpy(state) for state in states]
         next_imgs_tensor = [torch.from_numpy(img) for img in next_imgs]
-
+        masks_tensor = [torch.from_numpy(mask) for mask in masks]
+        bounding_boxes_tensor = [torch.from_numpy(bounding_box) for bounding_box in bounding_boxes]
         try:
             imgs_tensor = torch.stack(imgs_tensor, dim=0)
         except:
@@ -411,10 +487,11 @@ class Feeder(Dataset):
             print('states_tensor',states_tensor)
             states_tensor = torch.stack(states_tensor, dim=0)
         next_imgs_tensor = torch.stack(next_imgs_tensor, dim=0)
+        bounding_boxes_tensor = torch.stack(bounding_boxes_tensor, dim=0)
         # print('data[index], instr:',self.data[index],instr,sample['from_file'])
         # print('states_tensor',states_tensor)
         # print('imgs_tensor',imgs_tensor.shape)
         # print('imgs_tensor',self.data[index],sample['from_file'],instr,actions_tok[2])
         # instr = str(actions_tok[2][-1])
-        return imgs_tensor, instr, actions_tok, states_tensor, next_imgs_tensor, index
+        return imgs_tensor, instr, actions_tok, states_tensor, next_imgs_tensor, bounding_boxes_tensor, index
     

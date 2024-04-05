@@ -50,8 +50,8 @@ class Agent(nn.Module):
             obs = batch['observations']
             states = batch['states']
             texts = batch['instr']
-
-        predict_actions, prediction = self(obs,texts,states)
+            bounding_boxes = batch['bounding_boxes']
+        predict_actions, prediction = self(obs,texts,states,bounding_boxes)
         return predict_actions
 
     def update_target_tokenizer(self):
@@ -61,8 +61,8 @@ class Agent(nn.Module):
             shadow_param.data = (1.0 - self.momentum) * shadow_param.data + self.momentum * model_param.data
         self.momentum = min(1., self.momentum+self.momentum_delta)
 
-    def forward(self,obs,texts,states):
-        actions,prediction = self.model(obs,texts,states)
+    def forward(self,obs,texts,states,bounding_boxes):
+        actions,prediction = self.model(obs,texts,states,bounding_boxes)
         return actions, prediction
     
     def compute_loss(self, batch: Batch, **kwargs: Any) -> LossWithIntermediateLosses:
@@ -71,10 +71,11 @@ class Agent(nn.Module):
         next_obs = batch['next_observations']
         states = batch['states']
         texts = batch['instr']
+        bounding_boxes = batch['bounding_boxes']
         actions = batch['actions']
         # print('states',states)
         # print('actions',actions)
-        predict_actions, prediction = self(obs,texts,states)
+        predict_actions, prediction = self(obs,texts,states,bounding_boxes)
         # print(predict_actions[:,-1], actions[:,-1],F.binary_cross_entropy_with_logits(predict_actions[:,-1], actions[:,-1]))
         # loss_actions = (F.mse_loss(predict_actions[:,:-1], actions[:,:-1])+F.binary_cross_entropy_with_logits(predict_actions[:,-1], actions[:,-1]))*self.loss_weight[0]
         # print('predict_actions',predict_actions[0, -3 - 2:-2])

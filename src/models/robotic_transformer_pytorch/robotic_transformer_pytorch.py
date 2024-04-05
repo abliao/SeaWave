@@ -1183,6 +1183,9 @@ class DamWorld(nn.Module):
             nn.Linear(embed_dim, num_actions*action_bins),
             Rearrange('... (a b) -> ... a b', b = action_bins)
         )
+        self.bounding_boxes_encoder = nn.Sequential(
+            nn.Linear(4, embed_dim),
+        )
         self.predict_action_net=nn.Sequential(
             Rearrange('... a b -> ... (a b)', a=num_actions, b = action_bins),
             nn.Linear(num_actions*action_bins, embed_dim),
@@ -1194,6 +1197,7 @@ class DamWorld(nn.Module):
         video,
         texts: Optional[List[str]] = None,
         state = None,
+        bounding_boxes = None,
         cond_drop_prob = 0.,
         return_embed = False
     ):
@@ -1215,12 +1219,18 @@ class DamWorld(nn.Module):
         learned_tokens = rearrange(image_token, 'b f n c -> b (f n) c')
 
         # attention
-
         state_token=self.state_network(state)
         learned_tokens=torch.cat([learned_tokens,state_token], dim=1)
-        text_token = text_token.unsqueeze(1)
+        pos_emb = posemb_sincos_1d(learned_tokens.shape[1], learned_tokens.shape[-1], dtype = learned_tokens.dtype, device = learned_tokens.device)
+        learned_tokens = learned_tokens + pos_emb
 
-        attended_tokens = self.transformer(learned_tokens, text_token, cond_fns = None) #, attn_mask = ~attn_mask
+        text_token = text_token.unsqueeze(1)
+        bounding_boxes_token = self.bounding_boxes_encoder(bounding_boxes)
+        prompt_token = torch.cat([bounding_boxes_token,text_token], dim=1)
+        pos_emb = posemb_sincos_1d(prompt_token.shape[1], prompt_token.shape[-1], dtype = prompt_token.dtype, device = prompt_token.device)
+        prompt_token = prompt_token + pos_emb
+
+        attended_tokens = self.transformer(learned_tokens, prompt_token, cond_fns = None) #, attn_mask = ~attn_mask
 
         # pooled = reduce(attended_tokens, 'b (f n) d -> b f d', 'mean', f = frames)
         pooled = reduce(attended_tokens, 'b fn d -> b d', 'mean')
@@ -1231,6 +1241,7 @@ class DamWorld(nn.Module):
         prompt_token = torch.cat([text_token,action_token], dim=1)
         pos_emb = posemb_sincos_1d(prompt_token.shape[1], prompt_token.shape[-1], dtype = prompt_token.dtype, device = prompt_token.device)
         prompt_token = prompt_token + pos_emb
+        
         predict_feature = self.predict_transformer(learned_tokens, prompt_token, cond_fns = None)
         predict_feature = predict_feature[:,:frames*n] 
         predict_feature = reduce(predict_feature, 'b (f n) d -> b n d', 'mean',f=frames,n=n)
