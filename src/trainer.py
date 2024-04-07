@@ -141,17 +141,18 @@ class Trainer:
             print(f"\nEpoch {epoch} / {self.cfg.common.epochs}\n")
             start_time = time.time()
             to_log = []
-            save_should = False
+            save_best_should = False
             if self.cfg.training.should:
                 to_log += self.train_agent(epoch)
 
             if self.cfg.evaluation.should and (epoch % self.cfg.evaluation.every == 0):
+                
                 to_log += self.eval_agent(epoch)
                 if min_loss is None or min_loss>to_log[-1]['agent/eval/total_loss']:
                     min_loss = to_log[-1]['agent/eval/total_loss']
-                    save_should = True
-            if self.cfg.training.should and save_should:
-                self.save_checkpoint(epoch, save_agent_only=not self.cfg.common.do_checkpoint)
+                    save_best_should = True
+            if self.cfg.training.should:
+                self.save_checkpoint(epoch, save_agent_only=not self.cfg.common.do_checkpoint, save_best_should=save_best_should)
 
             to_log.append({'duration': (time.time() - start_time) / 3600})
             for metrics in to_log:
@@ -203,7 +204,7 @@ class Trainer:
     def train_component(self, component: nn.Module, optimizer: torch.optim.Optimizer, steps_per_epoch: int,  max_grad_norm: Optional[float],  lr_scheduler= None, **kwargs_loss: Any) -> Dict[str, float]:
         loss_total_epoch = 0.0
         intermediate_losses = defaultdict(float)
-        for _, (imgs, instr, actions, states_tensor, next_imgs, bounding_boxes, index) in enumerate(tqdm(self.train_dataset, desc="Training", ncols=100)):
+        for _, (imgs, instr, actions, states_tensor, next_imgs, bounding_boxes, action_descriptions, index) in enumerate(tqdm(self.train_dataset, desc="Training", ncols=100)):
             """batch['observation'] is supposed to be channels first and in [0, 1]"""
             B, SEQ, F, H, W, C = imgs.shape
             imgs = imgs.contiguous().view(B*SEQ, F, H, W, C).float()
@@ -219,6 +220,11 @@ class Trainer:
             instructions = [] 
             for i in instr:
                 instructions += [i] * SEQ
+            text_actions = []
+            for action_description in action_descriptions:
+                text_actions+=action_description
+            for instr_index in range(len(instructions)):
+                instructions[instr_index] = instructions[instr_index]+' Action is '+text_actions[instr_index]
             batch=dict()
             batch['observations']=imgs
             batch['next_observations']=next_imgs
@@ -267,7 +273,7 @@ class Trainer:
 
         steps = 0
         pbar = tqdm(desc=f"Evaluating {str(component)}", file=sys.stdout)
-        for _, (imgs, instr, actions, states_tensor, next_imgs, bounding_boxes, index) in enumerate(tqdm(self.test_dataset, desc="Testing", ncols=100)):
+        for _, (imgs, instr, actions, states_tensor, next_imgs, bounding_boxes, action_descriptions, index) in enumerate(tqdm(self.test_dataset, desc="Testing", ncols=100)):
             """batch['observation'] is supposed to be channels first and in [0, 1]"""
             B, SEQ, F, H, W, C = imgs.shape
             imgs = imgs.contiguous().view(B*SEQ, F, H, W, C).float()
@@ -283,7 +289,11 @@ class Trainer:
             instructions = [] 
             for i in instr:
                 instructions += [i] * SEQ
-
+            text_actions = []
+            for action_description in action_descriptions:
+                text_actions+=action_description
+            for instr_index in range(len(instructions)):
+                instructions[instr_index] = instructions[instr_index]+' Action is '+text_actions[instr_index]
             batch=dict()
             batch['observations']=imgs
             batch['next_observations']=next_imgs
@@ -323,8 +333,10 @@ class Trainer:
 
         return to_log
 
-    def _save_checkpoint(self, epoch: int, save_agent_only: bool) -> None:
+    def _save_checkpoint(self, epoch: int, save_agent_only: bool, save_best_should) -> None:
         torch.save(self.agent.state_dict(), self.ckpt_dir / 'last.pt')
+        if save_best_should:
+            torch.save(self.agent.state_dict(), self.ckpt_dir / 'best.pt')
         if not save_agent_only:
             torch.save(epoch, self.ckpt_dir / 'epoch.pt')
             torch.save({
@@ -339,10 +351,10 @@ class Trainer:
             # if self.cfg.evaluation.should:
             #     torch.save(self.test_dataset.num_seen_episodes, self.ckpt_dir / 'num_seen_episodes_test_dataset.pt')
 
-    def save_checkpoint(self, epoch: int, save_agent_only: bool) -> None:
+    def save_checkpoint(self, epoch: int, save_agent_only: bool, save_best_should) -> None:
         tmp_checkpoint_dir = Path('checkpoints_tmp')
         shutil.copytree(src=self.ckpt_dir, dst=tmp_checkpoint_dir, ignore=shutil.ignore_patterns('dataset'))
-        self._save_checkpoint(epoch, save_agent_only)
+        self._save_checkpoint(epoch, save_agent_only,save_best_should)
         shutil.rmtree(tmp_checkpoint_dir)
 
     def load_checkpoint(self) -> None:

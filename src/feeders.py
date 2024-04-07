@@ -308,19 +308,19 @@ class Feeder(Dataset):
             can_att = list(set(can_att).intersection(have_att))
         if level==0 or len(can_att)==0:
             if event == 'graspTargetObj':
-                instr = 'pick a '+self.targetObj
+                instr = 'Pick a '+self.targetObj+'.'
             elif event == 'placeTargetObj':
-                instr = 'place ' + self.targetObj
+                instr = 'Place ' + self.targetObj+'.'
             elif event == 'moveNear':
-                instr = 'moveNear ' + self.targetObj
+                instr = 'MoveNear ' + self.targetObj+'.'
             elif event == 'knockOver':
-                instr = 'knock ' + self.targetObj +' over'
+                instr = 'Knock ' + self.targetObj +' over'+'.'
             elif event == 'pushFront':
-                instr = 'push ' + self.targetObj + ' front'
+                instr = 'Push ' + self.targetObj + ' front'+'.'
             elif event == 'pushLeft':
-                instr = 'push ' + self.targetObj + ' left'
+                instr = 'Push ' + self.targetObj + ' left'+'.'
             elif event == 'pushRight':
-                instr = 'push ' + self.targetObj + ' right'
+                instr = 'Push ' + self.targetObj + ' right'+'.'
         else:
             att = random.choice(can_att)
             instr = instr[att]
@@ -331,6 +331,7 @@ class Feeder(Dataset):
         imgs = []
         masks = []
         bounding_boxes = []
+        action_descriptions = []
         states = []
         actions=[]
         next_imgs = []
@@ -354,11 +355,12 @@ class Feeder(Dataset):
             # each frame
             img = Image.open(images[frame_id])
             imgs.append(Resize(img,self.img_size)) # numpy array
-            mask, sents, is_sentence, action = get_mask_from_json(jsons[frame_id], np.array(Image.open(images[frame_id])))
+            mask, sents, is_sentence, action_description = get_mask_from_json(jsons[frame_id], np.array(Image.open(images[frame_id])))
             mask[mask==255] = 0
             masks.append(mask)
             bounding_box = get_normalized_bounding_box(mask)
             bounding_boxes.append(bounding_box)
+            action_descriptions.append(action_description)
             sensors=frame['state']['sensors']
             state = np.array(sensors[3]['data'])
             state[:3]-=np.array([x,y,z])
@@ -433,6 +435,7 @@ class Feeder(Dataset):
                 next_imgs = next_imgs.copy() + next_imgs
                 masks = masks.copy() +masks
                 bounding_boxes = bounding_boxes.copy() + bounding_boxes
+                action_descriptions = action_descriptions.copy()+action_descriptions
                 # new_states = new_states.copy() + new_states
             actions = actions[-self.sample_frame:]
             imgs = imgs[-self.sample_frame:]
@@ -440,16 +443,18 @@ class Feeder(Dataset):
             next_imgs = next_imgs[-self.sample_frame:] 
             masks = masks[-self.sample_frame:]
             bounding_boxes = bounding_boxes[-self.sample_frame:]
+            action_descriptions = action_descriptions[-self.sample_frame:]
             # new_states = new_states[:self.sample_frame]
         else:
-            zip_list = random.sample(list(zip(actions,imgs,states,next_imgs,masks,bounding_boxes)), self.sample_frame)
-            actions, imgs, states, next_imgs, masks, bounding_boxes = zip(*zip_list)
+            zip_list = random.sample(list(zip(actions,imgs,states,next_imgs,masks,bounding_boxes,action_descriptions)), self.sample_frame)
+            actions, imgs, states, next_imgs, masks, bounding_boxes,action_descriptions = zip(*zip_list)
             actions = list(actions)
             imgs = list(imgs)
             states = list(states)
             next_imgs = list(next_imgs)
             masks = list(masks)
             bounding_boxes = list(bounding_boxes)
+            action_descriptions = list(action_descriptions)
             # new_states = list(new_states)
 
         if self.dataAug:
@@ -493,5 +498,5 @@ class Feeder(Dataset):
         # print('imgs_tensor',imgs_tensor.shape)
         # print('imgs_tensor',self.data[index],sample['from_file'],instr,actions_tok[2])
         # instr = str(actions_tok[2][-1])
-        return imgs_tensor, instr, actions_tok, states_tensor, next_imgs_tensor, bounding_boxes_tensor, index
+        return imgs_tensor, instr, actions_tok, states_tensor, next_imgs_tensor, bounding_boxes_tensor, action_descriptions, index
     

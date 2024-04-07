@@ -157,7 +157,7 @@ def grasp(sim,agent,lisa_chat,log,target_obj_index,robot_location,objList,device
         mats = sim.getImage()
         text_output, pred_mask=lisa_chat.chat(np.array(mats[0]),instr+' Please output segmentation mask and action.')
         bounding_box = get_normalized_bounding_box(pred_mask)
-        bounding_box = torch.Tensor(bounding_box).unsqueeze(0).unsqueeze(0)
+        bounding_box = torch.Tensor(bounding_box).to(device).unsqueeze(0).unsqueeze(0)
         obs=Resize(mats[0])
         
         img=torch.Tensor(obs)
@@ -409,19 +409,22 @@ def Tester(agent, cfg, episode_dir):
         objLists = pickle.load(f)
 
     # 获取训练数据
-    import os
-    def list_files(directory):
+    def list_dirs(directory):
         files = []
         for entry in os.listdir(directory):
             full_path = os.path.join(directory, entry)
-            if os.path.isfile(full_path):
+            if os.path.isdir(full_path):
                 files.append(full_path)
         return files
+    def find_pkl(directory):
+        files = [os.path.join(directory, item) for item in os.listdir(directory) if os.path.isfile(os.path.join(directory, item)) and item.endswith('pkl')]
+        assert len(files)==1
+        return files[0]
 
     # 调用函数
     n_objs = 3
-    directory = "/data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right_0322"
-    files = list_files(directory)
+    directory = cfg.datasets.test.data_path[0] #"/data2/liangxiwen/zkd/datasets/dataGen/DATA/2_objs_graspTargetObj_Right_0322"
+    dirs = list_dirs(directory)
     for index in tqdm(range(90)):
         # if index<5:
         #     continue
@@ -433,9 +436,9 @@ def Tester(agent, cfg, episode_dir):
             sim.EnableEndPointCtrl(False)
         else:
             sim.EnableEndPointCtrl(True)
-        with open(files[index], 'rb') as f:
+        with open(find_pkl(dirs[index]), 'rb') as f:
             data = pickle.load(f)
-        print('files_index',files[index])
+        print('files_index',dirs[index])
         print('video_index',data['from_file'])
         desk_id = data['deskInfo']['id']  # random.choice(list(sim.desks.ID.values))
         sim.addDesk(desk_id=desk_id, h=98)
@@ -473,7 +476,7 @@ def Tester(agent, cfg, episode_dir):
         log['targetObjID'] = target_obj_id
         log['targetObj'] = targetObj
 
-        instr = 'pick a ' + targetObj+'.'
+        instr = 'Pick a ' + targetObj+'.'
         log['instruction'] = instr
         sx, sy = sim.getObservation().location.X, sim.getObservation().location.Y
         robot_location = (sx, sy, 90)
